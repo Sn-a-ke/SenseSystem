@@ -1,0 +1,110 @@
+---
+Language : Cpp
+Standard : Latest
+BasedOnStyle : LLVM
+AccessModifierOffset : -4
+
+IndentWidth : 4
+TabWidth : 4
+UseTab : Always
+ColumnLimit : 160
+PointerAlignment : Left
+
+AlignAfterOpenBracket : AlwaysBreak
+AllowAllArgumentsOnNextLine : false
+AlignTrailingComments : true
+AlignOperands : false
+
+AlwaysBreakAfterDefinitionReturnType: None
+AlwaysBreakAfterReturnType: None
+AlwaysBreakTemplateDeclarations : Yes
+PenaltyReturnTypeOnItsOwnLine: 1000000
+
+BreakBeforeBraces : Custom #Allman 
+BreakBeforeTernaryOperators : true
+BreakConstructorInitializers : BeforeComma
+BreakInheritanceList : BeforeComma
+
+AllowShortEnumsOnASingleLine : false
+
+AllowAllConstructorInitializersOnNextLine : false
+AllowAllParametersOfDeclarationOnNextLine : false
+
+
+AllowShortCaseLabelsOnASingleLine : true
+AllowShortIfStatementsOnASingleLine : true
+AllowShortFunctionsOnASingleLine : InlineOnly 
+AllowShortLambdasOnASingleLine : All
+
+
+BinPackArguments : false
+BinPackParameters : false
+
+BraceWrapping : 
+  AfterCaseLabel : true
+  AfterClass : true
+  AfterControlStatement : Always
+  AfterEnum : true
+  
+  AfterFunction : true
+  AfterNamespace : true
+  AfterStruct : true
+  AfterUnion : true
+  AfterExternBlock : true
+  
+  BeforeCatch : true
+  BeforeElse : true
+  BeforeLambdaBody : true
+  
+  IndentBraces : false
+  
+  SplitEmptyFunction : false
+  SplitEmptyRecord : false
+  SplitEmptyNamespace : false
+  
+
+ConstructorInitializerAllOnOneLineOrOnePerLine : true
+
+Cpp11BracedListStyle : true
+FixNamespaceComments : true
+
+
+SortIncludes : false
+SortUsingDeclarations : false
+IncludeCategories : 
+  - Regex : '^<.*'
+    Priority : 1
+  - Regex : '^".*'
+    Priority : 2
+  - Regex : '.*'
+    Priority : 3
+IncludeIsMainRegex : '([-_](test|unittest))?$'
+
+IndentCaseLabels : true
+
+IndentWrappedFunctionNames : false
+IndentPPDirectives : BeforeHash
+
+MaxEmptyLinesToKeep : 2
+NamespaceIndentation : All
+ReflowComments : false
+
+SpaceAfterLogicalNot : false
+SpaceAfterTemplateKeyword : false
+
+SpacesBeforeTrailingComments : 1
+#SpaceBeforeCaseColon : false
+SpaceBeforeParens : ControlStatements
+
+SpaceInEmptyBlock : false
+SpacesInCStyleCastParentheses : false
+SpaceAfterCStyleCast : false
+SpacesInSquareBrackets : false
+
+#AlignConsecutiveAssignments : Consecutive
+#AlignConsecutiveBitFields : Consecutive
+#AlignConsecutiveDeclarations : None
+#AlignConsecutiveMacros : None
+#EmptyLineAfterAccessModifier : Always
+#AlignEscapedNewlines : DontAlign 
+...

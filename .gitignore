@@ -1,0 +1,26 @@
+# Ignore everything
+*
+
+# NotIgnore
+!/SenseSystem/Source/**
+!/SenseSystem/Resources/**
+!/SenseSystem/Content/**
+!*.uplugin
+
+
+# Windows
+ehthumbs.db
+Thumbs.db
+
+# Visual Studio
+.vs
+.vscode
+.vs
+*.VC.db
+*.opensdf
+*.opendb
+*.sdf
+*.sln
+*.suo
+*.xcodeproj
+*.xcworkspace
