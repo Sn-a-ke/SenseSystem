@@ -125,12 +125,15 @@ public:
 	FStimulusTagResponse& operator=(const FStimulusTagResponse& Str);
 	friend FArchive& operator<<(FArchive& Ar, FStimulusTagResponse& Str)
 	{
+		//Ar << Str.SensorTag;
 		Ar << Str.BitChannels;
 		Ar << Str.Age;
 		Ar << Str.Score;
 		Ar << Str.ReceiveStimulusFlag;
 		return Ar;
 	}
+
+
 
 private:
 	void AddSensed(AActor* Actor, uint8 InChannel);
@@ -224,7 +227,7 @@ public:
 
 	/************************************/
 
-	
+
 	/** Stimulus Mobility */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SenseStimulus")
 	EStimulusMobility Mobility = EStimulusMobility::Static;
@@ -310,7 +313,6 @@ public:
 	/** Set Response Channels */
 	UFUNCTION(BlueprintCallable, Category = "SenseSystem|SenseStimulus", meta = (DisplayName = "SetResponseChannels", Keywords = "Sense Set Response Channel"))
 	void SetResponseChannelsBit(FName Tag, FBitFlag64_SenseSys NewChannels);
-
 
 	/************************************/
 
@@ -418,7 +420,7 @@ FORCEINLINE bool USenseStimulusBase::IsRegisteredForSense() const
 
 FORCEINLINE bool USenseStimulusBase::IsSelfValid() const
 {
-	return bRegisteredForSense && !IsPendingKill();
+	return bRegisteredForSense && IsValid(this);
 }
 FORCEINLINE USenseManager* USenseStimulusBase::GetSenseManager() const
 {
@@ -578,9 +580,12 @@ FORCEINLINE FStimulusTagResponse& FStimulusTagResponse::operator=(const FStimulu
 {
 	ContainerTree = Str.ContainerTree;
 	ObjID = Str.ObjID;
+
+	//SensorTag = Str.SensorTag;
 	BitChannels = Str.BitChannels;
 	Age = Str.Age;
 	Score = Str.Score;
 	ReceiveStimulusFlag = Str.ReceiveStimulusFlag;
+
 	return *this;
 }

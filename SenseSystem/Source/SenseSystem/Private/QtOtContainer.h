@@ -38,6 +38,7 @@ class SENSESYSTEM_API IContainerTree
 {
 public:
 	virtual ~IContainerTree() {}
+	using Real = typename FVector::FReal;
 
 protected:
 	virtual TSparseArray<FSensedStimulus>& GetCompDataPool() = 0;
@@ -68,12 +69,12 @@ public:
 	virtual void Collapse() = 0;
 
 	virtual void GetInBoxIDs(FBox Box, TArray<uint16>& Out, uint64 InBitChannels = MAX_uint64) const = 0;
-	virtual void GetInRadiusIDs(float Radius, FVector Center, TArray<uint16>& Out, uint64 InBitChannels = MAX_uint64) const = 0;
-	virtual void GetInBoxRadiusIDs(FBox Box, FVector Center, float Radius, TArray<uint16>& Out, uint64 InBitChannels = MAX_uint64) const = 0;
+	virtual void GetInRadiusIDs(Real Radius, FVector Center, TArray<uint16>& Out, uint64 InBitChannels = MAX_uint64) const = 0;
+	virtual void GetInBoxRadiusIDs(FBox Box, FVector Center, Real Radius, TArray<uint16>& Out, uint64 InBitChannels = MAX_uint64) const = 0;
 
 	virtual void GetInBoxIDs(FBox Box, TSet<uint16>& Out, uint64 InBitChannels = MAX_uint64) const = 0;
-	virtual void GetInRadiusIDs(float Radius, FVector Center, TSet<uint16>& Out, uint64 InBitChannels = MAX_uint64) const = 0;
-	virtual void GetInBoxRadiusIDs(FBox Box, FVector Center, float Radius, TSet<uint16>& Out, uint64 InBitChannels = MAX_uint64) const  = 0;
+	virtual void GetInRadiusIDs(Real Radius, FVector Center, TSet<uint16>& Out, uint64 InBitChannels = MAX_uint64) const = 0;
+	virtual void GetInBoxRadiusIDs(FBox Box, FVector Center, Real Radius, TSet<uint16>& Out, uint64 InBitChannels = MAX_uint64) const  = 0;
 
 	virtual FBox GetMaxIntersect(FBox Box) const = 0;
 
@@ -115,7 +116,9 @@ private:
 	virtual const TSparseArray<FSensedStimulus>& GetCompDataPool() const override { return Tree.GetElementPool(); }
 
 public:
-	FSenseSys_QuadTree(const float MinimumQuadSize, const int32 InNodeCantSplit = 8, const int32 OtCount = 128, const int32 ObjCount = 128)
+	using Real = typename FVector::FReal;
+	
+	FSenseSys_QuadTree(const Real MinimumQuadSize, const int32 InNodeCantSplit = 8, const int32 OtCount = 128, const int32 ObjCount = 128)
 		: Tree(MinimumQuadSize, InNodeCantSplit, OtCount, ObjCount)
 	{
 #if WITH_EDITOR
@@ -135,12 +138,12 @@ public:
 	virtual void Collapse() override;
 
 	virtual void GetInBoxIDs(FBox Box, TArray<uint16>& Out, uint64 InBitChannels = MAX_uint64) const override;
-	virtual void GetInRadiusIDs(float Radius, FVector Center, TArray<uint16>& Out, uint64 InBitChannels = MAX_uint64) const override;
-	virtual void GetInBoxRadiusIDs(FBox Box, FVector Center, float Radius, TArray<uint16>& Out, uint64 InBitChannels = MAX_uint64) const override;
+	virtual void GetInRadiusIDs(Real Radius, FVector Center, TArray<uint16>& Out, uint64 InBitChannels = MAX_uint64) const override;
+	virtual void GetInBoxRadiusIDs(FBox Box, FVector Center, Real Radius, TArray<uint16>& Out, uint64 InBitChannels = MAX_uint64) const override;
 
 	virtual void GetInBoxIDs(FBox Box, TSet<uint16>& Out, uint64 InBitChannels = MAX_uint64) const override;
-	virtual void GetInRadiusIDs(float Radius, FVector Center, TSet<uint16>& Out, uint64 InBitChannels = MAX_uint64) const override;
-	virtual void GetInBoxRadiusIDs(FBox Box, FVector Center, float Radius, TSet<uint16>& Out, uint64 InBitChannels = MAX_uint64) const override;
+	virtual void GetInRadiusIDs(Real Radius, FVector Center, TSet<uint16>& Out, uint64 InBitChannels = MAX_uint64) const override;
+	virtual void GetInBoxRadiusIDs(FBox Box, FVector Center, Real Radius, TSet<uint16>& Out, uint64 InBitChannels = MAX_uint64) const override;
 
 	virtual void DrawTree(const class UWorld* World, FTreeDrawSetup TreeNode, FTreeDrawSetup Link, FTreeDrawSetup ElemNode, float LifeTime) const override;
 
@@ -149,14 +152,14 @@ public:
 private:
 	struct FInRadiusPredicate
 	{
-		FInRadiusPredicate(const TreeType& InTree, const FVector& InCenter, const float InRadius, const FBox2D& InBox, const uint64 InBitChannels = MAX_uint64)
+		FInRadiusPredicate(const TreeType& InTree, const FVector& InCenter, const Real InRadius, const FBox2D& InBox, const uint64 InBitChannels = MAX_uint64)
 			: Tree(InTree)
 			, Center(InCenter)
 			, RSquared(InRadius * InRadius)
 			, Box(InBox)
 			, BitChannels(InBitChannels)
 		{}
-		FInRadiusPredicate(const TreeType& InTree, const FVector& InCenter, const float InRadius, const uint64 InBitChannels = MAX_uint64)
+		FInRadiusPredicate(const TreeType& InTree, const FVector& InCenter, const Real InRadius, const uint64 InBitChannels = MAX_uint64)
 			: Tree(InTree)
 			, Center(InCenter)
 			, RSquared(InRadius * InRadius)
@@ -175,7 +178,7 @@ private:
 
 		const TreeType& Tree;
 		const FVector2D Center;
-		const float RSquared;
+		const Real RSquared;
 		const FBox2D Box;
 		const uint64 BitChannels;
 	};
@@ -211,7 +214,10 @@ private:
 	virtual const TSparseArray<FSensedStimulus>& GetCompDataPool() const override { return Tree.GetElementPool(); }
 
 public:
-	FSenseSys_OcTree(const float MinimumCubeSize, const int32 InNodeCantSplit = 8, const int32 OtCount = 128, const int32 ObjCount = 128)
+
+	using Real = typename FVector::FReal;
+
+	FSenseSys_OcTree(const Real MinimumCubeSize, const int32 InNodeCantSplit = 8, const int32 OtCount = 128, const int32 ObjCount = 128)
 		: Tree(MinimumCubeSize, InNodeCantSplit, OtCount, ObjCount)
 	{
 #if WITH_EDITOR
@@ -230,12 +236,12 @@ public:
 	virtual void Collapse() override;
 
 	virtual void GetInBoxIDs(FBox Box, TArray<uint16>& Out, uint64 InBitChannels = MAX_uint64) const override;
-	virtual void GetInRadiusIDs(float Radius, FVector Center, TArray<uint16>& Out, uint64 InBitChannels = MAX_uint64) const override;
-	virtual void GetInBoxRadiusIDs(FBox Box, FVector Center, float Radius, TArray<uint16>& Out, uint64 InBitChannels = MAX_uint64) const override;
+	virtual void GetInRadiusIDs(Real Radius, FVector Center, TArray<uint16>& Out, uint64 InBitChannels = MAX_uint64) const override;
+	virtual void GetInBoxRadiusIDs(FBox Box, FVector Center, Real Radius, TArray<uint16>& Out, uint64 InBitChannels = MAX_uint64) const override;
 
 	virtual void GetInBoxIDs(FBox Box, TSet<uint16>& Out, uint64 InBitChannels = MAX_uint64) const override;
-	virtual void GetInRadiusIDs(float Radius, FVector Center, TSet<uint16>& Out, uint64 InBitChannels = MAX_uint64) const override;
-	virtual void GetInBoxRadiusIDs(FBox Box, FVector Center, float Radius, TSet<uint16>& Out, uint64 InBitChannels = MAX_uint64) const override;
+	virtual void GetInRadiusIDs(Real Radius, FVector Center, TSet<uint16>& Out, uint64 InBitChannels = MAX_uint64) const override;
+	virtual void GetInBoxRadiusIDs(FBox Box, FVector Center, Real Radius, TSet<uint16>& Out, uint64 InBitChannels = MAX_uint64) const override;
 
 	virtual void DrawTree(const class UWorld* World, FTreeDrawSetup TreeNode, FTreeDrawSetup Link, FTreeDrawSetup ElemNode, float LifeTime) const override;
 
@@ -244,7 +250,7 @@ public:
 private:
 	struct FInRadiusPredicate
 	{
-		FInRadiusPredicate(const TreeType& InTree, const FVector& InCenter, const float InRadius, const uint64 InBitChannels = MAX_uint64)
+		FInRadiusPredicate(const TreeType& InTree, const FVector& InCenter, const Real InRadius, const uint64 InBitChannels = MAX_uint64)
 			: Tree(InTree)
 			, Center(InCenter)
 			, RSquared(InRadius * InRadius)
@@ -253,7 +259,7 @@ private:
 			, BitChannels(InBitChannels)
 		{}
 
-		FInRadiusPredicate(const TreeType& InTree, const FVector& InCenter, const float InRadius, const FBox& Box, const uint64 InBitChannels = MAX_uint64)
+		FInRadiusPredicate(const TreeType& InTree, const FVector& InCenter, const Real InRadius, const FBox& Box, const uint64 InBitChannels = MAX_uint64)
 			: Tree(InTree)
 			, Center(InCenter)
 			, RSquared(InRadius * InRadius)
@@ -272,7 +278,7 @@ private:
 
 		const TreeType& Tree;
 		const FVector Center;
-		const float RSquared;
+		const Real RSquared;
 		const FBox Box;
 		const uint64 BitChannels;
 	};

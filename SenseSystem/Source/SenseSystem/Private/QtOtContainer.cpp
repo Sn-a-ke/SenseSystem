@@ -336,7 +336,7 @@ void FSenseSys_QuadTree::GetInBoxIDs(const FBox Box, TArray<uint16>& Out, const 
 	const auto InBox = FInBoxPredicate(Tree, Box2D, InBitChannels);
 	Tree.GetElementsIDs(Box2D, InBox, Out);
 }
-void FSenseSys_QuadTree::GetInRadiusIDs(const float Radius, const FVector Center, TArray<uint16>& Out, const uint64 InBitChannels) const
+void FSenseSys_QuadTree::GetInRadiusIDs(const FSenseSys_QuadTree::Real Radius, const FVector Center, TArray<uint16>& Out, const uint64 InBitChannels) const
 {
 	QUICK_SCOPE_CYCLE_COUNTER(STAT_SenseSys_OcTree_GetInRadius);
 
@@ -345,7 +345,12 @@ void FSenseSys_QuadTree::GetInRadiusIDs(const float Radius, const FVector Center
 	const auto InRadius = FInRadiusPredicate(Tree, Center, Radius, InBitChannels);
 	Tree.GetElementsIDs(InRadius.Box, InRadius, Out);
 }
-void FSenseSys_QuadTree::GetInBoxRadiusIDs(const FBox Box, const FVector Center, const float Radius, TArray<uint16>& Out, const uint64 InBitChannels) const
+void FSenseSys_QuadTree::GetInBoxRadiusIDs(
+	const FBox Box,
+	const FVector Center,
+	const FSenseSys_QuadTree::Real Radius,
+	TArray<uint16>& Out,
+	const uint64 InBitChannels) const
 {
 	QUICK_SCOPE_CYCLE_COUNTER(STAT_SenseSys_OcTree_GetInBoxRadius);
 
@@ -366,7 +371,7 @@ void FSenseSys_QuadTree::GetInBoxIDs(FBox Box, TSet<uint16>& Out, uint64 InBitCh
 	const auto InBox = FInBoxPredicate(Tree, Box2D, InBitChannels);
 	Tree.GetElementsIDs(Box2D, InBox, Out);
 }
-void FSenseSys_QuadTree::GetInRadiusIDs(float Radius, FVector Center, TSet<uint16>& Out, uint64 InBitChannels) const
+void FSenseSys_QuadTree::GetInRadiusIDs(FSenseSys_QuadTree::Real Radius, FVector Center, TSet<uint16>& Out, uint64 InBitChannels) const
 {
 	QUICK_SCOPE_CYCLE_COUNTER(STAT_SenseSys_OcTree_GetInRadius);
 
@@ -375,7 +380,7 @@ void FSenseSys_QuadTree::GetInRadiusIDs(float Radius, FVector Center, TSet<uint1
 	const auto InRadius = FInRadiusPredicate(Tree, Center, Radius, InBitChannels);
 	Tree.GetElementsIDs(InRadius.Box, InRadius, Out);
 }
-void FSenseSys_QuadTree::GetInBoxRadiusIDs(FBox Box, FVector Center, float Radius, TSet<uint16>& Out, uint64 InBitChannels) const
+void FSenseSys_QuadTree::GetInBoxRadiusIDs(FBox Box, FVector Center, FSenseSys_QuadTree::Real Radius, TSet<uint16>& Out, uint64 InBitChannels) const
 {
 	QUICK_SCOPE_CYCLE_COUNTER(STAT_SenseSys_OcTree_GetInBoxRadius);
 
@@ -407,7 +412,7 @@ void FSenseSys_OcTree::GetInBoxIDs(const FBox Box, TArray<uint16>& Out, const ui
 	const auto InBox = FInBoxPredicate(Tree, Box, InBitChannels);
 	Tree.GetElementsIDs(Box, InBox, Out);
 }
-void FSenseSys_OcTree::GetInRadiusIDs(const float Radius, const FVector Center, TArray<uint16>& Out, const uint64 InBitChannels) const
+void FSenseSys_OcTree::GetInRadiusIDs(const FSenseSys_OcTree::Real Radius, const FVector Center, TArray<uint16>& Out, const uint64 InBitChannels) const
 {
 	QUICK_SCOPE_CYCLE_COUNTER(STAT_SenseSys_OcTree_GetInBox);
 
@@ -416,7 +421,12 @@ void FSenseSys_OcTree::GetInRadiusIDs(const float Radius, const FVector Center, 
 	const auto InRadius = FInRadiusPredicate(Tree, Center, Radius, InBitChannels);
 	Tree.GetElementsIDs(InRadius.Box, InRadius, Out);
 }
-void FSenseSys_OcTree::GetInBoxRadiusIDs(const FBox Box, const FVector Center, const float Radius, TArray<uint16>& Out, const uint64 InBitChannels) const
+void FSenseSys_OcTree::GetInBoxRadiusIDs(
+	const FBox Box,
+	const FVector Center,
+	const FSenseSys_OcTree::Real Radius,
+	TArray<uint16>& Out,
+	const uint64 InBitChannels) const
 {
 	QUICK_SCOPE_CYCLE_COUNTER(STAT_SenseSys_OcTree_GetInBoxRadius);
 
@@ -435,7 +445,7 @@ void FSenseSys_OcTree::GetInBoxIDs(FBox Box, TSet<uint16>& Out, uint64 InBitChan
 	const auto InBox = FInBoxPredicate(Tree, Box, InBitChannels);
 	Tree.GetElementsIDs(Box, InBox, Out);
 }
-void FSenseSys_OcTree::GetInRadiusIDs(float Radius, FVector Center, TSet<uint16>& Out, uint64 InBitChannels) const
+void FSenseSys_OcTree::GetInRadiusIDs(FSenseSys_OcTree::Real Radius, FVector Center, TSet<uint16>& Out, uint64 InBitChannels) const
 {
 	QUICK_SCOPE_CYCLE_COUNTER(STAT_SenseSys_OcTree_GetInBox);
 
@@ -444,7 +454,7 @@ void FSenseSys_OcTree::GetInRadiusIDs(float Radius, FVector Center, TSet<uint16>
 	const auto InRadius = FInRadiusPredicate(Tree, Center, Radius, InBitChannels);
 	Tree.GetElementsIDs(InRadius.Box, InRadius, Out);
 }
-void FSenseSys_OcTree::GetInBoxRadiusIDs(FBox Box, FVector Center, float Radius, TSet<uint16>& Out, uint64 InBitChannels) const
+void FSenseSys_OcTree::GetInBoxRadiusIDs(FBox Box, FVector Center, FSenseSys_OcTree::Real Radius, TSet<uint16>& Out, uint64 InBitChannels) const
 {
 	QUICK_SCOPE_CYCLE_COUNTER(STAT_SenseSys_OcTree_GetInBoxRadius);
 

@@ -62,6 +62,4 @@ protected:
 	virtual bool LineBoolTraceTest(
 		const UWorld* World, const FCollisionQueryParams& CollisionParams, const FVector& StartTrace, FSensedStimulus& SensedStimulus) const;
 
-	UE_DEPRECATED(4.23, "unused")
-	static FHitResult* GetBlockingHit(TArray<struct FHitResult>& Hits);
 };

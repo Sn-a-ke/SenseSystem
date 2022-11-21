@@ -418,8 +418,6 @@ public:
 	void Remove_SenseChannels(uint64 NewChannels);
 
 
-	/********************************/
-
 	/** Switch Enable for this Sensor */
 	UFUNCTION(BlueprintCallable, Category = "SenseSystem|Sensor", meta = (Keywords = "Set Sensor Enable"))
 	void SetEnableSensor(bool bInEnable);
@@ -571,7 +569,7 @@ public:
 
 	/********************************/
 
-	UE_DEPRECATED(4.26, "use the USensorBase::FindBestScoreSensed(...)")
+	UE_DEPRECATED(5.0, "use the USensorBase::FindBestScoreSensed(...)")
 	UFUNCTION(BlueprintCallable, BlueprintPure = false, Category = "SenseSystem|Sensor" /*,meta = (DeprecatedFunction,  DeprecationMessage="use the USensorBase::FindBestScoreSensed.")*/)
 	TArray<FSensedStimulus> GetBestSensedByScore(int32 Count, uint8 InChannel = 1) const;
 
@@ -696,8 +694,7 @@ protected:
 public:
 	/** UnRegister SenseStimulus called from sense manager*/
 	virtual TArray<FStimulusFindResult> UnRegisterSenseStimulus(USenseStimulusBase* Ssc);
-	//UE_DEPRECATED(4.24, "del")
-	//bool RemoveFromSensingByHash(uint32 Hash);
+
 
 	/********************************/
 
@@ -880,7 +877,7 @@ FORCEINLINE bool USensorBase::IsValidForTest_Short() const
 }
 FORCEINLINE bool USensorBase::IsValidForTest() const
 {
-	return IsValidForTest_Short() && !IsPendingKill() && ChannelSetup.Num() != 0; /*&& SensorTests.Num() != 0*/
+	return IsValidForTest_Short() && IsValid(this) && ChannelSetup.Num() != 0; /*&& SensorTests.Num() != 0*/
 }
 
 FORCEINLINE USenseManager* USensorBase::GetSenseManager() const

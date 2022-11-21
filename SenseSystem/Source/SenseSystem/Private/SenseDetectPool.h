@@ -118,8 +118,6 @@ private:
 	void EmptyArr(TArray<uint16>& A);
 	void EmptyArr(TArray<uint16>&& A);
 
-	UE_DEPRECATED(4.23, "unused")
-	void EmptyArr(TArray<uint16>& A, const uint64 Channel);
 
 #if WITH_EDITOR
 public:

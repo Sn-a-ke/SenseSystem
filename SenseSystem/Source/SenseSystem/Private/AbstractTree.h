@@ -87,43 +87,23 @@ namespace TreeHelper
 template<typename PointType, uint32 DimensionSize>
 struct TTreeBox
 {
-	// todo PointType float? type - reinterpret_cast<const float*>(&Point);
+	using Real = typename PointType::FReal;
 
 	TTreeBox() : Min(0), Max(0), Center(0) {}
-	explicit TTreeBox(float HalfSize) : Min(PointType(-HalfSize, -HalfSize)), Max(PointType(HalfSize, HalfSize)), Center((Max + Min) * 0.5f) {}
+	explicit TTreeBox(Real HalfSize) : Min(PointType(-HalfSize, -HalfSize)), Max(PointType(HalfSize, HalfSize)), Center((Max + Min) * 0.5f) {}
 	explicit TTreeBox(PointType Point) : Min(Point), Max(Point), Center(Point) {}
 	TTreeBox(PointType InMin, PointType InMax) : Min(InMin), Max(InMax), Center((InMax + InMin) * 0.5f) {}
-	TTreeBox(PointType Location, float MinimumQuadSize)
+	TTreeBox(PointType Location, Real MinimumQuadSize)
 	{
-		/*//test body
-		const float MIN = -90000000.f;
-		const float MAX = 90000000.f;
-		const int32 N = 10000000;
-		for (int32 i = 0; i < N; ++i)
-		{
-			const FVector V = FVector(
-				UKismetMathLibrary::RandomFloatInRange(MIN, MAX),
-				UKismetMathLibrary::RandomFloatInRange(MIN, MAX),
-				UKismetMathLibrary::RandomFloatInRange(MIN, MAX));
-			TTreeBox<FVector, 3> Box(V, 1000.f);
-		
-			check(!Box.Min.ContainsNaN());
-			check(!Box.Max.ContainsNaN());
-		}
-		*/
-
-		const float* RESTRICT L = reinterpret_cast<const float*>(&Location);
-		float* RESTRICT Mi = reinterpret_cast<float*>(&Min);
-		float* RESTRICT Ma = reinterpret_cast<float*>(&Max);
+		const Real* RESTRICT L = reinterpret_cast<const Real*>(&Location);
+		Real* RESTRICT Mi = reinterpret_cast<Real*>(&Min);
+		Real* RESTRICT Ma = reinterpret_cast<Real*>(&Max);
 
 		MinimumQuadSize = FMath::Abs(MinimumQuadSize);
 		for (int32 i = 0; i < DimensionSize; ++i)
 		{
 			const int32 Li = FMath::CeilToInt(L[i] / MinimumQuadSize);
-			/*// old native code
-			Max[i] = Li * MinimumQuadSize;
-			Min[i] = Max[i] - MinimumQuadSize;
-			*/
+
 			Mi[i] = (Li - 1) * MinimumQuadSize;
 			if (Mi[i] >= L[i]) // unreliable CeilToInt
 			{
@@ -139,7 +119,7 @@ struct TTreeBox
 #if WITH_EDITOR
 		checkf(
 			IsInside(Location),
-			TEXT("Error! TTreeBox(PointType Location, float MinimumQuadSize):"
+			TEXT("Error! TTreeBox(PointType Location, Real MinimumQuadSize):"
 				 "\nIsInside(Location) -> Location[i] > Min[i] || Location[i] <= Max[i] = false, "
 				 "\nTTreeBox::Min =\t %s  <"
 				 "\nLocation =\t\t %s  <="
@@ -187,9 +167,9 @@ public:
 
 	FORCEINLINE bool IsInside(const PointType& TestPoint) const
 	{
-		const float* RESTRICT P = reinterpret_cast<const float*>(&TestPoint);
-		const float* RESTRICT Mi = reinterpret_cast<const float*>(&Min);
-		const float* RESTRICT Ma = reinterpret_cast<const float*>(&Max);
+		const Real* RESTRICT P = reinterpret_cast<const Real*>(&TestPoint);
+		const Real* RESTRICT Mi = reinterpret_cast<const Real*>(&Min);
+		const Real* RESTRICT Ma = reinterpret_cast<const Real*>(&Max);
 		for (int32 i = 0; i < DimensionSize; ++i)
 		{
 			if (P[i] <= Mi[i] || P[i] > Ma[i])
@@ -203,10 +183,10 @@ public:
 	FORCEINLINE bool IsInside(const TTreeBox<PointType, DimensionSize>& Box) const { return (IsInside(Box.Min) && IsInside(Box.Max)); }
 	FORCEINLINE bool IsIntersect(const PointType& BoxMin, const PointType& BoxMax) const
 	{
-		const float* RESTRICT MiB = reinterpret_cast<const float*>(&BoxMin);
-		const float* RESTRICT MaB = reinterpret_cast<const float*>(&BoxMax);
-		const float* RESTRICT Mi = reinterpret_cast<const float*>(&Min);
-		const float* RESTRICT Ma = reinterpret_cast<const float*>(&Max);
+		const Real* RESTRICT MiB = reinterpret_cast<const Real*>(&BoxMin);
+		const Real* RESTRICT MaB = reinterpret_cast<const Real*>(&BoxMax);
+		const Real* RESTRICT Mi = reinterpret_cast<const Real*>(&Min);
+		const Real* RESTRICT Ma = reinterpret_cast<const Real*>(&Max);
 		for (int32 i = 0; i < DimensionSize; ++i)
 		{
 			if (Mi[i] >= MaB[i] && MiB[i] > Ma[i])
@@ -230,13 +210,13 @@ public:
 
 	FORCEINLINE operator PointType() const { return GetCenter(); }
 
-	FORCEINLINE bool SphereAABBIntersection(const PointType& SphereCenter, const float RSquared) const
+	FORCEINLINE bool SphereAABBIntersection(const PointType& SphereCenter, const Real RSquared) const
 	{
-		const float* RESTRICT C = reinterpret_cast<const float*>(&SphereCenter);
-		const float* RESTRICT Mi = reinterpret_cast<const float*>(&Min);
-		const float* RESTRICT Ma = reinterpret_cast<const float*>(&Max);
+		const Real* RESTRICT C = reinterpret_cast<const Real*>(&SphereCenter);
+		const Real* RESTRICT Mi = reinterpret_cast<const Real*>(&Min);
+		const Real* RESTRICT Ma = reinterpret_cast<const Real*>(&Max);
 
-		float DistSquared = 0.f;
+		Real DistSquared = 0.f;
 		for (int32 i = 0; i < DimensionSize; ++i)
 		{
 			if (C[i] < Min[i])
@@ -297,13 +277,25 @@ public:
 	static_assert(SubNodesNum > 0, "Error TTreeNode SubNodesNum == 0 !");
 	static_assert(DimensionSize > 1U && DimensionSize < 4U, "TTreeNode: DimensionSize error");
 
+	using Real = typename PointType::FReal;
 	using ElementNodeType = TreeElementIdxType;
 	using TreeNodeType = TTreeNode<TreeElementIdxType, IndexQtType, PointType, DimensionSize, InlineNodeNum>;
 	using BoxType = TTreeBox<PointType, DimensionSize>;
 
-	TTreeNode() : SubNodes(TStaticArray<IndexQtType, SubNodesNum>(MaxIndexQt)), TreeBox(0) {}
-	TTreeNode(IndexQtType InParent, const BoxType& Box) : SubNodes(TStaticArray<IndexQtType, SubNodesNum>(MaxIndexQt)), Parent(InParent), TreeBox(Box) {}
-	TTreeNode(IndexQtType InParent, BoxType&& Box) : SubNodes(TStaticArray<IndexQtType, SubNodesNum>(MaxIndexQt)), Parent(InParent), TreeBox(MoveTemp(Box)) {}
+	TTreeNode() 
+		: SubNodes(TStaticArray<IndexQtType, SubNodesNum>(InPlace, MaxIndexQt))
+		, TreeBox(0) 
+	{}
+	TTreeNode(IndexQtType InParent, const BoxType& Box) //
+		: SubNodes(TStaticArray<IndexQtType
+		, SubNodesNum>(InPlace, MaxIndexQt))
+		, Parent(InParent), TreeBox(Box)
+	{}
+	TTreeNode(IndexQtType InParent, BoxType&& Box)
+		: SubNodes(TStaticArray<IndexQtType, SubNodesNum>(InPlace, MaxIndexQt))
+		, Parent(InParent)
+		, TreeBox(MoveTemp(Box))
+	{}
 
 	FORCEINLINE bool operator==(const TreeNodeType& Other) const { return Self_ID == Other.Self_ID; }
 	FORCEINLINE friend uint32 GetTypeHash(const TreeNodeType& In) { return GetTypeHash(In.Self_ID); }
@@ -404,13 +396,13 @@ public:
 
 		const auto BoxCenter = GetTreeBox().GetCenter();
 
-		const float* RESTRICT Mi = reinterpret_cast<const float*>(&InBox.Min);
-		const float* RESTRICT Ma = reinterpret_cast<const float*>(&InBox.Max);
+		const Real* RESTRICT Mi = reinterpret_cast<const Real*>(&InBox.Min);
+		const Real* RESTRICT Ma = reinterpret_cast<const Real*>(&InBox.Max);
 
 		for (int32 i = 0; i < SubNodesNum; ++i)
 		{
 			PointType V;
-			float* const RESTRICT v = reinterpret_cast<float*>(&V);
+			Real* const RESTRICT v = reinterpret_cast<Real*>(&V);
 
 			for (int32 j = 0; j < DimensionSize; ++j)
 			{
@@ -429,7 +421,7 @@ public:
 		//https://en.wikipedia.org/wiki/Z-order_curve
 		uint8 BitIdx = 0;
 		auto Delta = Pos - Center;
-		const float* RESTRICT d = reinterpret_cast<const float*>(&Delta);
+		const Real* RESTRICT d = reinterpret_cast<const Real*>(&Delta);
 		for (int32 i = DimensionSize - 1; i >= 0; --i)
 		{
 			BitIdx = BitIdx << 1;
@@ -447,7 +439,7 @@ private:
 	{
 		uint8 P = 0;
 		const auto Delta = Pos - Center;
-		const float* RESTRICT d = reinterpret_cast<const float*>(&Delta);
+		const Real* RESTRICT d = reinterpret_cast<const Real*>(&Delta);
 		for (int32 i = DimensionSize - 1; i >= 0; --i)
 		{
 			P = P << 1;
@@ -478,6 +470,7 @@ public:
 	using TreeElementIdxType = uint16;
 	using TreeNodeType = TTreeNode<TreeElementIdxType, IndexQtType, PointType, DimensionSize, InlineAllocatorSize>;
 	using BoxType = typename TreeNodeType::BoxType;
+	using Real = typename PointType::FReal;
 
 	static constexpr IndexQtType MaxIndexQt = TreeNodeType::MaxIndexQt;
 	static constexpr int32 SubNodesNum = TreeNodeType::SubNodesNum;
@@ -499,7 +492,7 @@ private:
 
 public:
 	explicit TTree_Base<ElementType, PointType, IndexQtType, DimensionSize>(
-		const float InMinimumQuadSize = 100.f,
+		const Real InMinimumQuadSize = 100.f,
 		const int32 InNodeCantSplit = SubNodesNum,
 		const int32 TreePoolSize = 256,
 		const int32 CompPoolSize = 256)
@@ -515,8 +508,8 @@ public:
 
 protected:
 	IndexQtType Root = MaxIndexQt;
-	const float MinimumQuadSize;
-	const float SplitTolerance;
+	const Real MinimumQuadSize;
+	const Real SplitTolerance;
 	const int32 NodeCantSplit;
 
 	TSparseArray<TreeNodeType> Pool;
@@ -847,13 +840,13 @@ public:
 		}
 
 		const auto& V = GetElement(ObjID);
-		float MinVal = MAX_flt;
+		Real MinVal = MAX_flt;
 		uint16 MinIdx = MaxIndexQt;
 
 		auto FindNearestLambda = [&](const TreeElementIdxType Idx)
 		{
 			const auto& V2 = GetElement(Idx);
-			const float TestVal = (V - V2).SizeSquared();
+			const Real TestVal = (V - V2).SizeSquared();
 			if (TestVal < MinVal)
 			{
 				MinVal = TestVal;
@@ -1083,16 +1076,16 @@ private:
 	{
 		//checkNoRecursion();
 
-		float* const RESTRICT MiB = reinterpret_cast<float*>(&Box.Min);
-		float* const RESTRICT MaB = reinterpret_cast<float*>(&Box.Max);
+		Real* const RESTRICT MiB = reinterpret_cast<Real*>(&Box.Min);
+		Real* const RESTRICT MaB = reinterpret_cast<Real*>(&Box.Max);
 
 		while (Pool[Self_ID].Num() > 0)
 		{
 			const TreeNodeType& SelfNode = Pool[Self_ID];
 			const auto& SelfBox = SelfNode.GetTreeBox();
 
-			const float* RESTRICT Mi = reinterpret_cast<const float*>(&SelfBox.Min);
-			const float* RESTRICT Ma = reinterpret_cast<const float*>(&SelfBox.Max);
+			const Real* RESTRICT Mi = reinterpret_cast<const Real*>(&SelfBox.Min);
+			const Real* RESTRICT Ma = reinterpret_cast<const Real*>(&SelfBox.Max);
 
 			for (int32 i = 0; i < DimensionSize; ++i)
 			{
@@ -1243,12 +1236,12 @@ private:
 
 			PointType BoxCenter;
 			{
-				float* const RESTRICT Bc = reinterpret_cast<float*>(&BoxCenter);
+				Real* const RESTRICT Bc = reinterpret_cast<Real*>(&BoxCenter);
 
-				const float* RESTRICT QtBc = reinterpret_cast<const float*>(&QuadTreeBoxCenter);
-				const float* RESTRICT InBc = reinterpret_cast<const float*>(&InBoxCenter);
-				const float* RESTRICT MiB = reinterpret_cast<const float*>(&Box.Min);
-				const float* RESTRICT MaB = reinterpret_cast<const float*>(&Box.Max);
+				const Real* RESTRICT QtBc = reinterpret_cast<const Real*>(&QuadTreeBoxCenter);
+				const Real* RESTRICT InBc = reinterpret_cast<const Real*>(&InBoxCenter);
+				const Real* RESTRICT MiB = reinterpret_cast<const Real*>(&Box.Min);
+				const Real* RESTRICT MaB = reinterpret_cast<const Real*>(&Box.Max);
 
 				for (int32 i = 0; i < DimensionSize; ++i)
 				{
@@ -1283,7 +1276,7 @@ private:
 			if (Param == MaxIndexQt)
 			{
 				PointType HelP = HalfExtent;
-				float* const RESTRICT h = reinterpret_cast<float*>(&HelP);
+				Real* const RESTRICT h = reinterpret_cast<Real*>(&HelP);
 				for (int32 j = 0; j < DimensionSize; ++j)
 				{
 					if (1 & (i >> j))
@@ -1855,7 +1848,7 @@ private:
 
 			if (TreeRef.Nodes.Num())
 			{
-				constexpr float MinSizeBoxToDraw = 5.f;
+				constexpr Real MinSizeBoxToDraw = 5.f;
 				for (const auto& SubIdx : TreeRef.Nodes)
 				{
 					const auto& Point = GetElementBox(SubIdx);

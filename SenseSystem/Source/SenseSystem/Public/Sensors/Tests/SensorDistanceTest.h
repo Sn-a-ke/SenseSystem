@@ -53,14 +53,9 @@ protected:
 
 	virtual void InitializeCacheTest() override;
 
-	UPROPERTY()
 	FBox AABB_Box = FBox(FVector::ZeroVector, FVector::ZeroVector);
-
-	UPROPERTY()
-	float MaxDistanceSquared;
-
-	UPROPERTY()
-	float MaxDistanceLostSquared;
+	FVector::FReal MaxDistanceSquared;
+	FVector::FReal MaxDistanceLostSquared;
 };
 
 FORCEINLINE float USensorDistanceTest::ModifyScoreByCurve(const float Value) const

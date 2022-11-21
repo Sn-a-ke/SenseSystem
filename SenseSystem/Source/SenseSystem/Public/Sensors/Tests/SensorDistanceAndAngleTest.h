@@ -70,23 +70,16 @@ protected:
 	virtual void InitializeCacheTest() override;
 
 	FBox AABB_Box;
-	float MinDistanceSquared;
-	float MaxDistanceSquared;
-	float MaxDistanceLostSquared;
+	FVector::FReal MinDistanceSquared;
+	FVector::FReal MaxDistanceSquared;
+	FVector::FReal MaxDistanceLostSquared;
 	float MaxAngleCos;
 	float MaxAngleLostCos;
 
-#if SENSESYSTEM_ENABLE_VECTORINTRINSICS
-
-	VectorRegister TmpSelfForward = GlobalVectorConstants::Float1000; // PreTest updt
-	TStaticArray<VectorRegister, 4> AABB_Helper;					  // InitializeCacheTest updt
-
-#else
 
 	FVector TmpSelfForward;
 	TStaticArray<FVector, 4> AABB_Helper;
 
-#endif
 };
 
 FORCEINLINE float USensorDistanceAndAngleTest::ModifyDistanceScore(const float Value) const

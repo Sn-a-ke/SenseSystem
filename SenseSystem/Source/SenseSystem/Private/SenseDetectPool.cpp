@@ -387,21 +387,6 @@ void FSenseDetectPool::NewAgeUpdate(const float CurrentTime, const EOnSenseEvent
 	//ObjPool.ShrinkPool();
 }
 
-void FSenseDetectPool::EmptyArr(TArray<uint16>& A, const uint64 Channel)
-{
-	if (A.Num())
-	{
-		for (const uint16 i : A)
-		{
-			ObjPool[i].BitChannels |= ~Channel;
-			if (ObjPool[i].BitChannels == 0)
-			{
-				ObjPool.RemoveAt(i);
-			}
-		}
-		A.Empty();
-	}
-}
 
 #if WITH_EDITOR
 

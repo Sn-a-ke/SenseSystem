@@ -54,16 +54,8 @@ protected:
 	virtual ESenseTestResult RunTestForLocation(const FSensedStimulus& SensedStimulus, const FVector& TestLocation, float& ScoreResult) const override;
 
 	virtual void InitializeCacheTest() override;
-	
-#if SENSESYSTEM_ENABLE_VECTORINTRINSICS
-	
-	VectorRegister TmpSelfForward = MakeVectorRegister(1.f, 0.f, 0.f, 0.f);
-	
-#else
 
 	FVector TmpSelfForward;
-	
-#endif
 
 	float MaxAngleCos;
 	float MaxAngleLostCos;

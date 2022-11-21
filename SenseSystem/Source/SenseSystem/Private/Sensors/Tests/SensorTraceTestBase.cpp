@@ -80,27 +80,6 @@ bool USensorTraceTestBase::LineBoolTraceTest(
 	return true;
 }
 
-FHitResult* USensorTraceTestBase::GetBlockingHit(TArray<struct FHitResult>& Hits)
-{
-	QUICK_SCOPE_CYCLE_COUNTER(STAT_SenseSys_SensorTraceTestBase_GetBlockingHit);
-
-	for (auto& Hit : Hits)
-	{
-		const auto Component = Hit.Component.Get();
-		if (Component)
-		{
-			const auto Target = Component->GetOwner();
-			if (Target)
-			{
-				if (!IsStimulusInterface(Target) || !IsObstacleInterface(Target))
-				{
-					return &Hit;
-				}
-			}
-		}
-	}
-	return nullptr;
-}
 
 bool USensorTraceTestBase::ScoreFromTransparency(const TArray<struct FHitResult>& OutHits, float& InScore) const
 {

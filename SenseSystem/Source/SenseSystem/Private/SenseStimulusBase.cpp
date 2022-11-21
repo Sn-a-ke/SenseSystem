@@ -237,10 +237,8 @@ USenseStimulusBase::USenseStimulusBase(const FObjectInitializer& ObjectInitializ
 	AddIgnoreTraceActor(GetOwner());
 }
 
-PRAGMA_DISABLE_DEPRECATION_WARNINGS;
 USenseStimulusBase::~USenseStimulusBase()
 {}
-PRAGMA_ENABLE_DEPRECATION_WARNINGS;
 
 
 void USenseStimulusBase::BeginDestroy()
@@ -736,7 +734,7 @@ void USenseStimulusBase::SetReceiveStimulusFlag(const FName SensorTag, EReceiveS
 
 void USenseStimulusBase::OnUnregisterReceiver(UObject* Obj)
 {
-	if (IsPendingKill()) return;
+	if (!IsValid(this)) return;
 	if (const auto Comp = Cast<USenseReceiverComponent>(Obj))
 	{
 		if (AActor* const CompOwner = Comp->GetOwner())
@@ -836,7 +834,7 @@ bool USenseStimulusBase::IsRememberFrom(const AActor* Actor, const FName SensorT
 
 void USenseStimulusBase::SensedFromSensorUpdate(const USensorBase* Sensor, const int32 Channel, const EOnSenseEvent OnSenseEvent)
 {
-	if (bEnable && IsRegisteredForSense() && Sensor && Sensor->SensorTag != NAME_None && !IsPendingKill())
+	if (bEnable && IsRegisteredForSense() && Sensor && Sensor->SensorTag != NAME_None && IsValid(this))
 	{
 		const FName SensorTag = Sensor->SensorTag;
 		if (const auto Actor = Sensor->GetSensorOwner())

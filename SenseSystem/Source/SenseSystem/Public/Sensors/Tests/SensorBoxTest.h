@@ -53,7 +53,7 @@ public:
 
 private:
 	FBox AABB_Box;
-	float MaxManhattanDistance = 0.f;
+	FVector::FReal MaxManhattanDistance = 0.f;
 	void InitAABBBoxAndSensorTransform();
 	//float ModifyScoreByCurve(float Value) const;
 };

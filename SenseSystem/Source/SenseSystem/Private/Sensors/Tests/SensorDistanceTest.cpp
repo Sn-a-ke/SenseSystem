@@ -86,21 +86,10 @@ ESenseTestResult USensorDistanceTest::RunTestForLocation(const FSensedStimulus& 
 	ESenseTestResult OutResult = ESenseTestResult::Lost;
 	if (AABB_Box.IsInsideOrOn(TestLocation)) //AABB
 	{
-#if SENSESYSTEM_ENABLE_VECTORINTRINSICS
-
-		const FVectorTransformConst T = FVectorTransformConst(GetSensorTransform());
-		const VectorRegister Delta = VectorSubtract(T.GetLocation(), VectorLoadFloat3_W0(&TestLocation));
-		const float DistSquared = VectorGetComponent(VectorDot3(Delta, Delta), 0);
-
-#else
-
-		const float DistSquared = (GetSensorTransform().GetLocation() - TestLocation).SizeSquared(); //Distance Squared
-
-#endif
-
+		const FVector::FReal DistSquared = (GetSensorTransform().GetLocation() - TestLocation).SizeSquared(); //Distance Squared
 		if (DistSquared <= MaxDistanceLostSquared)
 		{
-			const float Dist = FMath::Sqrt(DistSquared);
+			const FVector::FReal Dist = FMath::Sqrt(DistSquared);
 			ScoreResult *= ModifyScoreByCurve(Dist / MaxDistanceLost);
 			OutResult =										   //
 				(MinScore > ScoreResult || Dist > MaxDistance) //

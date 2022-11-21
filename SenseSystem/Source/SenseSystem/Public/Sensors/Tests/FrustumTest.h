@@ -17,7 +17,7 @@ struct FFrustumTestData
 
 	float MaxRadius = 0.f;
 	float MaxCosAngle = -1.f;
-	float MaxManhattanDistance = 0.f;
+	FVector::FReal MaxManhattanDistance = 0.f;
 
 	FVector2D Center = FVector2D::ZeroVector;
 	FBox2D Bound = FBox2D(FVector2D::ZeroVector, FVector2D::ZeroVector);
@@ -94,20 +94,13 @@ private:
 	FFrustumTestData TmpData;
 	FBox AABB_Box;
 
-#if SENSESYSTEM_ENABLE_VECTORINTRINSICS
-
-	VectorRegister TmpSelfForward = MakeVectorRegister(1.f, 0.f, 0.f, 0.f);
-	
-#else
-
 	FVector TmpSelfForward = FVector::ForwardVector;
 
-#endif
 };
 
 FORCEINLINE float UFrustumTest::ScoreByScreenSpaceManhattanDistance(const FVector& IntersectPoint) const
 {
-	const float AbsX = FMath::Abs(IntersectPoint.Y - TmpData.Center.X);
-	const float AbsY = FMath::Abs(IntersectPoint.Z - TmpData.Center.Y);
+	const FVector::FReal AbsX = FMath::Abs(IntersectPoint.Y - TmpData.Center.X);
+	const FVector::FReal AbsY = FMath::Abs(IntersectPoint.Z - TmpData.Center.Y);
 	return 1.f - ((AbsX + AbsY) / TmpData.MaxManhattanDistance);
 }

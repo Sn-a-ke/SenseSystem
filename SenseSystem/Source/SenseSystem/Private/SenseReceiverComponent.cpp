@@ -142,7 +142,7 @@ void USenseReceiverComponent::OnRegister()
 {
 	Super::OnRegister();
 
-	if (!IsPendingKill())
+	if (IsValid(this))
 	{
 		for (uint8 i = 1; i < 4; i++)
 		{
@@ -366,7 +366,7 @@ void USenseReceiverComponent::AddTrackTargetComponent(USenseStimulusBase* Comp)
 
 void USenseReceiverComponent::RemoveTrackTargetComponent(USenseStimulusBase* Comp)
 {
-	if (Comp && !IsPendingKill())
+	if (Comp)
 	{
 		if (IsValid(Comp) && IsValid(Comp->GetOwner()))
 		{
@@ -759,7 +759,7 @@ USenseManager* USenseReceiverComponent::GetSenseManager() const
 
 void USenseReceiverComponent::BindOnReportStimulusEvent(const uint16 StimulusID, const FName SensorTag)
 {
-	if (bEnableSenseReceiver && SensorTag != NAME_None && StimulusID != MAX_uint16 && !IsPendingKill())
+	if (bEnableSenseReceiver && SensorTag != NAME_None && StimulusID != MAX_uint16 && IsValid(this))
 	{
 		for (UPassiveSensor* const It : PassiveSensors)
 		{
@@ -916,7 +916,7 @@ USensorBase* USenseReceiverComponent::CreateNewSensor(
 {
 	const UWorld* World = GetWorld();
 	const bool bPlayWorld = World && World->IsGameWorld() && World->HasBegunPlay() && !World->bIsTearingDown;
-	if (!IsPendingKill() && bPlayWorld && SensorClass != nullptr && Sensor_Type != ESensorType::None && Tag != NAME_None)
+	if (IsValid(this) && bPlayWorld && SensorClass != nullptr && Sensor_Type != ESensorType::None && Tag != NAME_None)
 	{
 		TArray<USensorBase*>& TargetArr = GetSensorsByType(Sensor_Type);
 		if (FindInArray_ByTag(TargetArr, Tag) == nullptr)
@@ -1031,7 +1031,7 @@ bool USenseReceiverComponent::DestroySensor(const ESensorType Sensor_Type, const
 {
 	const UWorld* World = GetWorld();
 	const bool bPlayWorld = World && World->IsGameWorld() && World->HasBegunPlay() && !World->bIsTearingDown;
-	if (!IsPendingKill() && bPlayWorld && Sensor_Type != ESensorType::None && Tag != NAME_None)
+	if (IsValid(this) && bPlayWorld && Sensor_Type != ESensorType::None && Tag != NAME_None)
 	{
 		TArray<USensorBase*>& TargetArr = GetSensorsByType(Sensor_Type);
 		if (USensorBase* Sen = FindInArray_ByTag(TargetArr, Tag))

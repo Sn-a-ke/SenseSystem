@@ -176,10 +176,8 @@ USensorBase::USensorBase(const FObjectInitializer& ObjectInitializer) : Super(Ob
 	//#endif
 }
 
-PRAGMA_DISABLE_DEPRECATION_WARNINGS;
 USensorBase::~USensorBase()
 {}
-PRAGMA_ENABLE_DEPRECATION_WARNINGS;
 
 void USensorBase::Serialize(FArchive& Ar)
 {
@@ -202,6 +200,13 @@ void USensorBase::Serialize(FArchive& Ar)
 	if (Ar.IsLoading())
 	{
 		bool Mod = false;
+
+		{
+			Algo::Sort(ChannelSetup, TLess<uint8>());
+			const auto Predicate = [](const TArray<FChannelSetup>& A, const int32 ID)
+			{ return (ID > 0 && A[ID] == A[ID - 1]) || A[ID].Channel > 64 || A[ID].Channel <= 0; };
+			Mod |= ArrayHelpers::Filter_Sorted(ChannelSetup, Predicate);
+		}
 
 		BitChannels.Value = GetBitChannelChannelSetup();
 
@@ -587,11 +592,11 @@ void USensorBase::Cleanup()
 		if (It)
 		{
 			It->bEnableTest = false;
-			It->MarkPendingKill();
+			It->MarkAsGarbage();
 		}
 	}
 
-	MarkPendingKill();
+	MarkAsGarbage();
 
 	if (UpdateState.Get() < ESensorState::Update) //force clean
 	{
@@ -864,7 +869,7 @@ void USensorBase::RemoveNullsIgnoreActorsAndComponents()
 
 TArray<FStimulusFindResult> USensorBase::UnRegisterSenseStimulus(USenseStimulusBase* Ssc)
 {
-	if (!IsPendingKill() && IsInitialized() && Ssc)
+	if (IsValid(this) && IsInitialized() && Ssc)
 	{
 		checkSlow(IsValid(Ssc));
 		Ignored_Actors.Remove(Ssc->GetOwner());
@@ -961,7 +966,7 @@ void USensorBase::ReportSenseStimulusEvent(USenseStimulusBase* SenseStimulus)
 
 void USensorBase::ReportSenseStimulusEvent(const uint16 InStimulusID)
 {
-	if (InStimulusID != MAX_uint16 && IsValidForTest_Short() && !IsPendingKill() && bEnable)
+	if (InStimulusID != MAX_uint16 && IsValidForTest_Short() && IsValid(this) && bEnable)
 	{
 		check(IsInGameThread());
 		if (SensorThreadType == ESensorThreadType::Main_Thread) //ReportSenseStimulusEvent only for Main_Thread
@@ -1326,7 +1331,6 @@ void USensorBase::DetectionLostAndForgetUpdate()
 	}
 }
 
-/******************************/
 
 void USensorBase::Add_SenseChannels(uint64 NewChannels)
 {
@@ -1376,7 +1380,6 @@ void USensorBase::Remove_SenseChannels(uint64 NewChannels)
 		BitChannels.Value = GetBitChannelChannelSetup();
 	}
 }
-
 
 void USensorBase::SetIgnoreSenseChannelsBit(const FBitFlag64_SenseSys InChannels)
 {
@@ -2769,7 +2772,7 @@ USensorTestBase* USensorBase::CreateNewSensorTest(const TSubclassOf<USensorTestB
 
 	const UWorld* World = GetWorld();
 	const bool bPlayWorld = World && World->IsGameWorld() && World->HasBegunPlay() && !World->bIsTearingDown;
-	if (!IsPendingKill() && SensorTestClass != nullptr && bPlayWorld && !bEnable)
+	if (IsValid(this) && SensorTestClass != nullptr && bPlayWorld && !bEnable)
 	{
 		USensorTestBase* STest = NewObject<USensorTestBase>(this, SensorTestClass);
 
@@ -2825,14 +2828,14 @@ bool USensorBase::DestroySensorTest(const TSubclassOf<USensorTestBase> SensorTes
 
 	const UWorld* World = GetWorld();
 	const bool bPlayWorld = World && World->IsGameWorld() && World->HasBegunPlay() && !World->bIsTearingDown;
-	if (!IsPendingKill() && SensorTestClass != nullptr && bPlayWorld && !bEnable && SensorTests.IsValidIndex(SensorTestIndexPlace))
+	if (IsValid(this) && SensorTestClass != nullptr && bPlayWorld && !bEnable && SensorTests.IsValidIndex(SensorTestIndexPlace))
 	{
 		USensorTestBase* STest = SensorTests[SensorTestIndexPlace];
 		if (STest->IsA(SensorTestClass))
 		{
 			SensorTests.RemoveAt(SensorTestIndexPlace);
 			STest->bEnableTest = false;
-			STest->MarkPendingKill();
+			STest->MarkAsGarbage();
 			if (SensorTests.Num() == 0)
 			{}
 		}

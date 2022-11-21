@@ -57,19 +57,7 @@ bool USensorAngleTest::PreTest()
 	}
 
 	const FTransform& T = GetSensorTransform();
-
-
-#if SENSESYSTEM_ENABLE_VECTORINTRINSICS
-
-	const FVector Forward = T.GetRotation().GetForwardVector();
-	TmpSelfForward = VectorLoadFloat3_W0(&Forward);
-
-#else
-
 	TmpSelfForward = GetSensorTransform().GetRotation().GetForwardVector();
-
-#endif
-
 	return true;
 }
 
@@ -78,18 +66,8 @@ ESenseTestResult USensorAngleTest::RunTestForLocation(const FSensedStimulus& Sen
 {
 	QUICK_SCOPE_CYCLE_COUNTER(STAT_SenseSys_AngleTest);
 
-#if SENSESYSTEM_ENABLE_VECTORINTRINSICS
-	// in range 10000 test  (VECTORINTRINSICS : 0.034500-Milliseconds) VS (Base : 0.080800-Milliseconds)
-	const FVectorTransformConst T = FVectorTransformConst(GetSensorTransform());
-	const VectorRegister Delta = VectorSubtract(VectorLoadFloat3_W0(&TestLocation), T.GetLocation());
-	const float CosAngle = VectorGetComponent(VectorDot3(TmpSelfForward, VectorNormalize(Delta)), 0);
-
-#else
-
 	const FVector Delta = TestLocation - GetSensorTransform().GetLocation();
 	const float CosAngle = FVector::DotProduct(TmpSelfForward, Delta.GetSafeNormal());
-
-#endif
 
 	if (CosAngle >= MaxAngleLostCos)
 	{
@@ -163,12 +141,8 @@ void USensorAngleTest::DrawDebug(const float Duration) const
 			OriginalT.SetRotation(R);
 
 			{
-		#if SENSESYSTEM_ENABLE_VECTORINTRINSICS
-				FVector Forward;
-				VectorStoreFloat3(TmpSelfForward, &Forward);
-		#else
+
 				FVector Forward = TmpSelfForward;
-		#endif
 
 				float DrawMaxAngle = MaxAngle;
 				if (DrawMaxAngle > 90.f)
@@ -183,12 +157,7 @@ void USensorAngleTest::DrawDebug(const float Duration) const
 
 			if (FMath::Abs(MaxAngleLost - MaxAngle) > KINDA_SMALL_NUMBER)
 			{
-		#if SENSESYSTEM_ENABLE_VECTORINTRINSICS
-				FVector Forward;
-				VectorStoreFloat3(TmpSelfForward, &Forward);
-		#else
 				FVector Forward = TmpSelfForward;
-		#endif
 
 				float DrawMaxAngleLost = MaxAngleLost;
 				if (DrawMaxAngleLost > 90.f)

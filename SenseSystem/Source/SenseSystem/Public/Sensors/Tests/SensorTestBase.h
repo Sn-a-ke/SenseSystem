@@ -116,22 +116,6 @@ protected:
 	// NotUproperty
 	USensorBase* PrivateSensorOwner = nullptr;
 
-#if SENSESYSTEM_ENABLE_VECTORINTRINSICS
-
-	union FVectorTransformConst
-	{
-	private:
-		const FTransform* T;
-		const VectorRegister* V;
-
-	public:
-		explicit FVectorTransformConst(const FTransform& InT) : T(&InT) {}
-		const VectorRegister& GetRotation() const { return V[0]; }
-		const VectorRegister& GetLocation() const { return V[1]; }
-		const VectorRegister& GetScale() const { return V[2]; }
-	};
-
-#endif
 };
 
 FORCEINLINE bool USensorTestBase::NeedTest() const

@@ -11,17 +11,6 @@
 #endif
 
 
-#if SENSESYSTEM_ENABLE_VECTORINTRINSICS
-static FORCEINLINE VectorRegister VectorRotateAngleAxis(const float AngleRad, const VectorRegister& V, const VectorRegister& Ax)
-{
-	float s, c;
-	FMath::SinCos(&s, &c, 0.5f * AngleRad);
-	const VectorRegister Quat = VectorMultiplyAdd(Ax, MakeVectorRegister(s, s, s, 0.f), MakeVectorRegister(0.f, 0.f, 0.f, c));
-	return VectorQuaternionRotateVector(Quat, V);
-}
-#endif
-
-
 USensorDistanceAndAngleTest::USensorDistanceAndAngleTest(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 	bTestBySingleLocation = true;
@@ -86,55 +75,6 @@ bool USensorDistanceAndAngleTest::PreTest()
 
 	//build AABB box
 
-#if SENSESYSTEM_ENABLE_VECTORINTRINSICS
-
-	const FVectorTransformConst T = FVectorTransformConst(Transform);
-	TmpSelfForward = VectorLoadFloat3_W0(&Forward); //updt member
-	VectorRegister Max = T.GetLocation();
-	VectorRegister Min = Max;
-	const VectorRegister Rotation = VectorLoadAligned(&QRotation);
-	for (int32 i = 0; i < 4; ++i)
-	{
-		const VectorRegister RotatedVec = VectorQuaternionRotateVector(Rotation, AABB_Helper[i]);
-		const VectorRegister TranslatedVec = VectorAdd(RotatedVec, T.GetLocation());
-		Max = VectorMax(TranslatedVec, Max);
-		Min = VectorMin(TranslatedVec, Min);
-	}
-
-	const VectorRegister MaxDist = VectorSetFloat1(MaxDistanceLost);
-	const VectorRegister MinDist = VectorSetFloat1(MinDistance);
-
-	const VectorRegister AABB_Helper_2[6] = //
-	{
-		MakeVectorRegister(00.f, 00.f,  1.f, 0.f), // FVector::UpVector
-		MakeVectorRegister(00.f, 00.f, -1.f, 0.f), // FVector::DownVector
-		MakeVectorRegister(00.f,  1.f, 00.f, 0.f), // FVector::RightVector
-		MakeVectorRegister(00.f, -1.f, 00.f, 0.f), // FVector::LeftVector
-		MakeVectorRegister( 1.f, 00.f, 00.f, 0.f), // FVector::ForwardVector
-		MakeVectorRegister(-1.f, 00.f, 00.f, 0.f), // FVector::BackwardVector
-	};
-
-	for (int32 i = 0; i < 6; ++i)
-	{
-		const VectorRegister TranslatedVec2 = VectorMultiplyAdd(AABB_Helper_2[i], MinDist, T.GetLocation());
-		Max = VectorMax(TranslatedVec2, Max);
-		Min = VectorMin(TranslatedVec2, Min);
-
-		const float CosAngle = VectorGetComponent(VectorDot3(TmpSelfForward, AABB_Helper_2[i]), 0);
-		if (CosAngle >= MaxAngleLostCos)
-		{
-			const VectorRegister TranslatedVec1 = VectorMultiplyAdd(AABB_Helper_2[i], MaxDist, T.GetLocation());
-			Max = VectorMax(TranslatedVec1, Max);
-			Min = VectorMin(TranslatedVec1, Min);
-		}
-	}
-
-	FVector MinV, MaxV;
-	VectorStoreFloat3(Max, &MaxV);
-	VectorStoreFloat3(Min, &MinV);
-	AABB_Box = FBox(MinV, MaxV); //updt member
-
-#else
 	const FVector Loc = Transform.GetLocation();
 	AABB_Box = FBox(Loc, Loc);
 	TmpSelfForward = Forward;
@@ -162,8 +102,6 @@ bool USensorDistanceAndAngleTest::PreTest()
 		}
 	}
 
-#endif
-
 	return true;
 }
 
@@ -174,55 +112,17 @@ ESenseTestResult USensorDistanceAndAngleTest::RunTestForLocation(const FSensedSt
 	ESenseTestResult OutResult = ESenseTestResult::Lost;
 	if (AABB_Box.IsInsideOrOn(TestLocation))
 	{
-#if SENSESYSTEM_ENABLE_VECTORINTRINSICS
-
-		const FVectorTransformConst T = FVectorTransformConst(GetSensorTransform());
-		const VectorRegister Delta = VectorSubtract(VectorLoadFloat3_W0(&TestLocation), T.GetLocation());
-		const float DistSquared = VectorGetComponent(VectorDot3(Delta, Delta), 0);
-
-#else
-
 		const FVector Delta = TestLocation - GetSensorTransform().GetLocation();
-		const float DistSquared = Delta.SizeSquared();
-
-#endif
+		const FVector::FReal DistSquared = Delta.SizeSquared();
 
 		if (DistSquared <= MaxDistanceLostSquared)
 		{
-#if SENSESYSTEM_ENABLE_VECTORINTRINSICS
-
-			VectorRegister Norm;
-			if (DistSquared == 1.f)
-			{
-				Norm = Delta;
-			}
-			else if (DistSquared < KINDA_SMALL_NUMBER)
-			{
-				Norm = GlobalVectorConstants::Float1000;
-			}
-			else
-			{
-				const float InvSqrtDist = FMath::InvSqrt(DistSquared);
-				Norm = VectorMultiply(Delta, VectorSetFloat1(InvSqrtDist));
-			}
-			const float CosAngle = VectorGetComponent(VectorDot3(TmpSelfForward, Norm), 0);
-
-			//check(FMath::IsNearlyEqual(
-			//	FVector::DotProduct(TmpSelfForward, NormalWithSizeSquared(TestLocation - Location, DistSquared)),
-			//	CosAngle,
-			//	KINDA_SMALL_NUMBER));
-
-#else
-
 			const float CosAngle = FVector::DotProduct(TmpSelfForward, NormalWithSizeSquared(Delta, DistSquared));
-
-#endif
-
 			if (CosAngle >= MaxAngleLostCos)
 			{
 				constexpr float Hpi = (180.0f) / PI;
 				//QUICK_SCOPE_CYCLE_COUNTER(STAT_SenseSys_DistanceAndAngleTest_DistSqrtAngleAcos);
-				const float Dist = FMath::Sqrt(DistSquared);
+				const FVector::FReal Dist = FMath::Sqrt(DistSquared);
 				const float Angle = FMath::Acos(CosAngle) * Hpi;
 
 				//QUICK_SCOPE_CYCLE_COUNTER(STAT_SenseSys_DistanceAndAngleTest_Score);
@@ -243,7 +143,7 @@ ESenseTestResult USensorDistanceAndAngleTest::RunTestForLocation(const FSensedSt
 			}
 			else if (MinDistanceSquared > 0.f && MinDistanceSquared >= DistSquared)
 			{
-				const float Dist = FMath::Sqrt(DistSquared);
+				const FVector::FReal Dist = FMath::Sqrt(DistSquared);
 				ScoreResult *= ModifyDistanceScore(Dist / MaxDistanceLost);
 				OutResult = ESenseTestResult::NotLost;
 			}
@@ -271,24 +171,11 @@ void USensorDistanceAndAngleTest::InitializeCacheTest()
 	MaxAngleCos = FMath::Cos(MaxAngle * PI / (180.f));
 	MaxAngleLostCos = FMath::Cos(MaxAngleLost * PI / (180.f));
 
-#if SENSESYSTEM_ENABLE_VECTORINTRINSICS
-
-	const float Angle = FMath::DegreesToRadians(MaxAngleLost);
-	const VectorRegister Vec = MakeVectorRegister(MaxDistanceLost, 0.f, 0.f, 0.f);
-	AABB_Helper[0] = VectorRotateAngleAxis(Angle, Vec, MakeVectorRegister(0.f, 01.f, 00.f, 0.f));
-	AABB_Helper[1] = VectorRotateAngleAxis(Angle, Vec, MakeVectorRegister(0.f, -1.f, 00.f, 0.f));
-	AABB_Helper[2] = VectorRotateAngleAxis(Angle, Vec, MakeVectorRegister(0.f, 00.f, 01.f, 0.f));
-	AABB_Helper[3] = VectorRotateAngleAxis(Angle, Vec, MakeVectorRegister(0.f, 00.f, -1.f, 0.f));
-
-#else
-
 	const FVector V = FVector(MaxDistanceLost, 0.f, 0.f);
 	AABB_Helper[0] = V.RotateAngleAxis(MaxAngleLost, FVector::RightVector);
 	AABB_Helper[1] = V.RotateAngleAxis(MaxAngleLost, FVector::LeftVector);
 	AABB_Helper[2] = V.RotateAngleAxis(MaxAngleLost, FVector::UpVector);
 	AABB_Helper[3] = V.RotateAngleAxis(MaxAngleLost, FVector::DownVector);
-
-#endif
 }
 
 
@@ -386,12 +273,7 @@ void USensorDistanceAndAngleTest::DrawDebug(const float Duration) const
 			OriginalT.SetRotation(R);
 
 			{
-		#if SENSESYSTEM_ENABLE_VECTORINTRINSICS
-				FVector Forward;
-				VectorStoreFloat3(TmpSelfForward, &Forward);
-		#else
 				FVector Forward = TmpSelfForward;
-		#endif
 				float DrawMaxAngle = MaxAngle;
 
 				int32 ArcCount = 8;
@@ -438,12 +320,7 @@ void USensorDistanceAndAngleTest::DrawDebug(const float Duration) const
 
 			if (FMath::Abs(MaxAngleLost - MaxAngle) > KINDA_SMALL_NUMBER)
 			{
-		#if SENSESYSTEM_ENABLE_VECTORINTRINSICS
-				FVector Forward;
-				VectorStoreFloat3(TmpSelfForward, &Forward);
-		#else
 				FVector Forward = TmpSelfForward;
-		#endif
 				float DrawMaxAngleLost = MaxAngleLost;
 
 

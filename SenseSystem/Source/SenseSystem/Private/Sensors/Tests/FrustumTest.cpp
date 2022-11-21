@@ -155,16 +155,8 @@ bool UFrustumTest::PreTest()
 	Super::PreTest();
 
 	const FTransform& T = GetSensorTransform();
-#if SENSESYSTEM_ENABLE_VECTORINTRINSICS
-
-	const FVector Forward = T.GetRotation().GetForwardVector();
-	TmpSelfForward = VectorLoadFloat3_W0(&Forward);
-
-#else
 
 	TmpSelfForward = T.GetRotation().GetForwardVector();
-
-#endif
 
 	const FVector L = T.GetLocation();
 	AABB_Box = FBox(L, L);
@@ -186,36 +178,14 @@ ESenseTestResult UFrustumTest::RunTestForLocation(const FSensedStimulus& SensedS
 	QUICK_SCOPE_CYCLE_COUNTER(STAT_SenseSys_FrustumTest);
 	if (AABB_Box.IsInsideOrOn(TestLocation)) //AABB
 	{
-#if SENSESYSTEM_ENABLE_VECTORINTRINSICS
-
-		const FVectorTransformConst T = FVectorTransformConst(GetSensorTransform());
-		const VectorRegister Delta = VectorSubtract(VectorLoadFloat3_W0(&TestLocation), T.GetLocation());
-		const float Dot = VectorGetComponent(VectorDot3(TmpSelfForward, Delta), 0);
-
-#else
-
 		const FVector Delta = TestLocation - GetSensorTransform().GetLocation();
 		const float Dot = FVector::DotProduct(TmpSelfForward, Delta);
 
-#endif
-
 		if (Dot > 0.f && Dot <= FarPlaneDistance)
 		{
-#if SENSESYSTEM_ENABLE_VECTORINTRINSICS
-
-			const VectorRegister RelativeReceiverLoc = VectorQuaternionInverseRotateVector(T.GetRotation(), Delta);
-			const float RelativeReceiverLocX_Far = FarPlaneDistance / VectorGetComponent(RelativeReceiverLoc, 0);
-			const VectorRegister Intersect = VectorMultiply(VectorSetFloat1(RelativeReceiverLocX_Far), RelativeReceiverLoc);
-			FVector IntersectPoint;
-			VectorStoreFloat3(Intersect, &IntersectPoint);
-
-#else
-
 			const FVector RelativeReceiverLoc = GetSensorTransform().InverseTransformVectorNoScale(Delta);
-			const float RelativeReceiverLocX_Far = FarPlaneDistance / RelativeReceiverLoc.X;
+			const FVector::FReal RelativeReceiverLocX_Far = FarPlaneDistance / RelativeReceiverLoc.X;
 			const FVector IntersectPoint = RelativeReceiverLocX_Far * RelativeReceiverLoc;
-
-#endif
 
 			if (TmpData.IsInsideBound(IntersectPoint))
 			{
@@ -255,11 +225,11 @@ FFrustumTestData::FFrustumTestData(
 		const float BoundX = FarPlaneDistance * FMath::Tan(HozHalfAngleInRadians);
 		const float BoundY = BoundX / AspectRatio;
 
-		Bound.Max.X = FMath::GetMappedRangeValueUnclamped(FVector2D(0.f, ViewportSize.X), FVector2D(-1.f, 1.f), Point1.X) * BoundX;
-		Bound.Max.Y = FMath::GetMappedRangeValueUnclamped(FVector2D(0.f, ViewportSize.Y), FVector2D(1.f, -1.f), Point1.Y) * BoundY;
+		Bound.Max.X = FMath::GetMappedRangeValueUnclamped(FVector2D(0.0, ViewportSize.X), FVector2D(-1.0, 1.0), Point1.X) * BoundX;
+		Bound.Max.Y = FMath::GetMappedRangeValueUnclamped(FVector2D(0.0, ViewportSize.Y), FVector2D(1.0, -1.0), Point1.Y) * BoundY;
 
-		Bound.Min.X = FMath::GetMappedRangeValueUnclamped(FVector2D(0.f, ViewportSize.X), FVector2D(-1.f, 1.f), Point2.X) * BoundX;
-		Bound.Min.Y = FMath::GetMappedRangeValueUnclamped(FVector2D(0.f, ViewportSize.Y), FVector2D(1.f, -1.f), Point2.Y) * BoundY;
+		Bound.Min.X = FMath::GetMappedRangeValueUnclamped(FVector2D(0.0, ViewportSize.X), FVector2D(-1.0, 1.0), Point2.X) * BoundX;
+		Bound.Min.Y = FMath::GetMappedRangeValueUnclamped(FVector2D(0.0, ViewportSize.Y), FVector2D(1.0, -1.0), Point2.Y) * BoundY;
 	}
 
 	InitDefault(FarPlaneDistance);
@@ -298,8 +268,8 @@ void FFrustumTestData::InitDefault(const float FarDistance)
 		MaxRadius = VMax.Size();
 	}
 	{
-		const float MaxX = FMath::Max(FMath::Abs(Bound.Max.X), FMath::Abs(Bound.Min.X));
-		const float MaxY = FMath::Max(FMath::Abs(Bound.Max.Y), FMath::Abs(Bound.Min.Y));
+		const FVector2D::FReal MaxX = FMath::Max(FMath::Abs(Bound.Max.X), FMath::Abs(Bound.Min.X));
+		const FVector2D::FReal MaxY = FMath::Max(FMath::Abs(Bound.Max.Y), FMath::Abs(Bound.Min.Y));
 		MaxCosAngle = FVector::DotProduct(FVector::ForwardVector, FVector(FarDistance, MaxX, MaxY).GetSafeNormal());
 	}
 }
