@@ -31,6 +31,7 @@ Supported Development Platforms: Win64, Win32, Mac, Linux
 
 Supported Target Build Platforms: Win64, Win32, Mac, Linux, PS4, XboxOne
 
+marketplace : https://www.unrealengine.com/marketplace/en-US/product/28a0c4ba00bf4eee8c17e52b7b2c8d52
 LinkToVideo : https://www.youtube.com/watch?v=BRw0GmMvG_g
 Doc and Example : https://drive.google.com/drive/folders/1YznJOVTO32tNC0-Zcv9XrGiVkhYsfNcv?usp=sharing
 Project Discord : https://discord.gg/2m5DCzC
