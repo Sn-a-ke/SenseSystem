@@ -22,11 +22,7 @@
 
 
 #if !defined(IF_CONSTEXPR)
-	#if PLATFORM_COMPILER_HAS_IF_CONSTEXPR
-		#define IF_CONSTEXPR if constexpr
-	#else
-		#define IF_CONSTEXPR if
-	#endif
+	#define IF_CONSTEXPR if constexpr
 #endif
 
 
@@ -38,8 +34,14 @@ namespace TreeHelper
 		return 1U << DimensionSize;
 	}
 
-	static FORCEINLINE FBox2D ToBox2D(const FBox& InBox) { return FBox2D(FVector2D(InBox.Min), FVector2D(InBox.Max)); }
-	static FORCEINLINE FBox ToBox(const FBox2D& InBox) { return FBox(FVector(InBox.Min.X, InBox.Min.Y, 0.f), FVector(InBox.Max.X, InBox.Max.Y, 0.f)); }
+	static FORCEINLINE FBox2D ToBox2D(const FBox& InBox)
+	{
+		return FBox2D(FVector2D(InBox.Min), FVector2D(InBox.Max));
+	}
+	static FORCEINLINE FBox ToBox(const FBox2D& InBox)
+	{
+		return FBox(FVector(InBox.Min.X, InBox.Min.Y, 0.f), FVector(InBox.Max.X, InBox.Max.Y, 0.f));
+	}
 
 	/*
 		None         = 0,
@@ -235,9 +237,12 @@ public:
 
 	FORCEINLINE operator FBox2D() const
 	{
-		IF_CONSTEXPR(DimensionSize == 2) { return FBox2D(Min, Max); }
+		IF_CONSTEXPR(DimensionSize == 2U)
+		{
+			return FBox2D(Min, Max);
+		}
 
-		IF_CONSTEXPR(DimensionSize != 2)
+		IF_CONSTEXPR(DimensionSize != 2U)
 		{
 			static_assert(DimensionSize > 1, "DimensionSize <= 1");
 			return FBox2D(FVector2D(Min[0], Min[1]), FVector2D(Max[0], Max[1]));
@@ -247,8 +252,14 @@ public:
 	}
 	FORCEINLINE operator FBox() const
 	{
-		IF_CONSTEXPR(DimensionSize == 3U) { return FBox(Min, Max); }
-		IF_CONSTEXPR(DimensionSize == 2U) { return FBox(FVector(Min[0], Min[1], 0), FVector(Max[0], Max[1], 0)); }
+		IF_CONSTEXPR(DimensionSize == 3U)
+		{
+			return FBox(Min, Max);
+		}
+		IF_CONSTEXPR(DimensionSize == 2U)
+		{
+			return FBox(FVector(Min[0], Min[1], 0), FVector(Max[0], Max[1], 0));
+		}
 		checkNoEntry();
 		UE_ASSUME(0);
 	}
@@ -282,14 +293,11 @@ public:
 	using TreeNodeType = TTreeNode<TreeElementIdxType, IndexQtType, PointType, DimensionSize, InlineNodeNum>;
 	using BoxType = TTreeBox<PointType, DimensionSize>;
 
-	TTreeNode() 
-		: SubNodes(TStaticArray<IndexQtType, SubNodesNum>(InPlace, MaxIndexQt))
-		, TreeBox(0) 
-	{}
+	TTreeNode() : SubNodes(TStaticArray<IndexQtType, SubNodesNum>(InPlace, MaxIndexQt)), TreeBox(0) {}
 	TTreeNode(IndexQtType InParent, const BoxType& Box) //
-		: SubNodes(TStaticArray<IndexQtType
-		, SubNodesNum>(InPlace, MaxIndexQt))
-		, Parent(InParent), TreeBox(Box)
+		: SubNodes(TStaticArray<IndexQtType, SubNodesNum>(InPlace, MaxIndexQt))
+		, Parent(InParent)
+		, TreeBox(Box)
 	{}
 	TTreeNode(IndexQtType InParent, BoxType&& Box)
 		: SubNodes(TStaticArray<IndexQtType, SubNodesNum>(InPlace, MaxIndexQt))
@@ -416,7 +424,7 @@ public:
 		return QuadNames;
 	}
 
-	static FORCEINLINE uint8 GetIDByPos(const PointType& Center, const PointType& Pos)
+	static uint8 GetIDByPos(const PointType& Center, const PointType& Pos)
 	{
 		//https://en.wikipedia.org/wiki/Z-order_curve
 		uint8 BitIdx = 0;
@@ -435,7 +443,7 @@ public:
 	}
 
 private:
-	static FORCEINLINE uint8 GetIDByPos_Inv(const PointType& Center, const PointType& Pos)
+	static uint8 GetIDByPos_Inv(const PointType& Center, const PointType& Pos)
 	{
 		uint8 P = 0;
 		const auto Delta = Pos - Center;

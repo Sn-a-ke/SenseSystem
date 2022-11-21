@@ -405,7 +405,7 @@ void USenseReceiverComponent::TrackTargets(const TArray<FSensedStimulus>& InSens
 
 /************************************/
 
-const TArray<USensorBase*>& USenseReceiverComponent::GetSensorsByType(const ESensorType Sensor_Type) const
+const TArray<TObjectPtr<USensorBase>>& USenseReceiverComponent::GetSensorsByType(const ESensorType Sensor_Type) const
 {
 	check(Sensor_Type != ESensorType::None);
 	switch (Sensor_Type)
@@ -420,7 +420,7 @@ const TArray<USensorBase*>& USenseReceiverComponent::GetSensorsByType(const ESen
 	return TypeArr(ActiveSensors);
 }
 
-TArray<USensorBase*>& USenseReceiverComponent::GetSensorsByType(ESensorType Sensor_Type)
+TArray<TObjectPtr<USensorBase>>& USenseReceiverComponent::GetSensorsByType(ESensorType Sensor_Type)
 {
 	check(Sensor_Type != ESensorType::None);
 	switch (Sensor_Type)
@@ -435,13 +435,13 @@ TArray<USensorBase*>& USenseReceiverComponent::GetSensorsByType(ESensorType Sens
 	return TypeArr(ActiveSensors);
 }
 
-TArray<USensorBase*> USenseReceiverComponent::GetSensorsByType_BP(const ESensorType Sensor_Type) const
+TArray<TObjectPtr<USensorBase>> USenseReceiverComponent::GetSensorsByType_BP(const ESensorType Sensor_Type) const
 {
 	if (Sensor_Type != ESensorType::None)
 	{
 		return GetSensorsByType(Sensor_Type);
 	}
-	return TArray<USensorBase*>{};
+	return TArray<TObjectPtr<USensorBase>>{};
 }
 
 USensorBase* USenseReceiverComponent::GetSensor_ByClass(TSubclassOf<USensorBase> SensorClass, ESuccessState& SuccessState) const
@@ -918,7 +918,7 @@ USensorBase* USenseReceiverComponent::CreateNewSensor(
 	const bool bPlayWorld = World && World->IsGameWorld() && World->HasBegunPlay() && !World->bIsTearingDown;
 	if (IsValid(this) && bPlayWorld && SensorClass != nullptr && Sensor_Type != ESensorType::None && Tag != NAME_None)
 	{
-		TArray<USensorBase*>& TargetArr = GetSensorsByType(Sensor_Type);
+		TArray<TObjectPtr<USensorBase>>& TargetArr = GetSensorsByType(Sensor_Type);
 		if (FindInArray_ByTag(TargetArr, Tag) == nullptr)
 		{
 			switch (Sensor_Type)
@@ -1033,7 +1033,7 @@ bool USenseReceiverComponent::DestroySensor(const ESensorType Sensor_Type, const
 	const bool bPlayWorld = World && World->IsGameWorld() && World->HasBegunPlay() && !World->bIsTearingDown;
 	if (IsValid(this) && bPlayWorld && Sensor_Type != ESensorType::None && Tag != NAME_None)
 	{
-		TArray<USensorBase*>& TargetArr = GetSensorsByType(Sensor_Type);
+		TArray<TObjectPtr<USensorBase>>& TargetArr = GetSensorsByType(Sensor_Type);
 		if (USensorBase* Sen = FindInArray_ByTag(TargetArr, Tag))
 		{
 			Sen->SetEnableSensor(false);

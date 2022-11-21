@@ -458,7 +458,7 @@ public:
 
 	/** Current test for sensing */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced, Category = "SensorTests", meta = (EditCondition = bOuter))
-	TArray<USensorTestBase*> SensorTests;
+	TArray<TObjectPtr<USensorTestBase>> SensorTests;
 	/** CreateNewSensorTest */
 	UFUNCTION(BlueprintCallable, Category = "SenseSystem|Sensor", meta = (DeterminesOutputType = "SensorTestClass", Keywords = "Create Add New Sensor Test"))
 	USensorTestBase* CreateNewSensorTest(TSubclassOf<USensorTestBase> SensorTestClass, int32 SensorTestIndexPlace = 0);
@@ -568,11 +568,6 @@ public:
 	TArray<FSensedStimulus> FindBestAgeSensed(uint8 InChannel = 1, int32 Count = 1) const;
 
 	/********************************/
-
-	UE_DEPRECATED(5.0, "use the USensorBase::FindBestScoreSensed(...)")
-	UFUNCTION(BlueprintCallable, BlueprintPure = false, Category = "SenseSystem|Sensor" /*,meta = (DeprecatedFunction,  DeprecationMessage="use the USensorBase::FindBestScoreSensed.")*/)
-	TArray<FSensedStimulus> GetBestSensedByScore(int32 Count, uint8 InChannel = 1) const;
-
 
 	/** Get best sensed SenseStimulusComponent */
 	UFUNCTION(BlueprintCallable, Category = "SenseSystem|Sensor", meta = (Keywords = "Get Best SenseStimulus Sense Stimulus"))

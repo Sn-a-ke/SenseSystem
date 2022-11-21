@@ -2148,12 +2148,6 @@ TArray<FSensedStimulus> USensorBase::FindBestAgeSensed(uint8 InChannel, int32 Co
 	return Out;
 }
 
-
-TArray<FSensedStimulus> USensorBase::GetBestSensedByScore(int32 Count, const uint8 InChannel) const
-{
-	return FindBestScoreSensed(InChannel, Count);
-}
-
 /********************************/
 
 bool USensorBase::GetBestSenseStimulus(FSensedStimulus& SensedStimulus, const uint8 InChannel) const

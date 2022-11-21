@@ -39,7 +39,7 @@ enum class EStimulusMobility : uint8
 
 /** CallStimulusFlag */
 UENUM(Meta = (Bitflags, UseEnumValuesAsMaskValuesInEditor = "true"))
-enum class EReceiveStimulusFlag : uint8
+enum class EReceiveStimulusFlag : int32
 {
 	DetectGlobalSenseState = 0x1,
 	ReceiveOnCurrentSensed = 0x2,

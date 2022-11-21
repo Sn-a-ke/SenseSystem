@@ -120,15 +120,15 @@ public:
 
 	/** Realtime Update Sensors */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced, Category = "SenseReceiver|Sensors")
-	TArray<UActiveSensor*> ActiveSensors;
+	TArray<TObjectPtr<UActiveSensor>> ActiveSensors;
 
 	/** Event Update Sensors */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced, Category = "SenseReceiver|Sensors")
-	TArray<UPassiveSensor*> PassiveSensors;
+	TArray<TObjectPtr<UPassiveSensor>> PassiveSensors;
 
 	/** Manual Update Sensors */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Instanced, Category = "SenseReceiver|Sensors")
-	TArray<UActiveSensor*> ManualSensors;
+	TArray<TObjectPtr<UActiveSensor>> ManualSensors;
 
 	/************************************/
 	// clang-format off
@@ -147,11 +147,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "SenseSystem|SenseReceiver", meta = (DeterminesOutputType = "SensorClass", Keywords = "Destroy Remove Delete Sensor"))
 	bool DestroySensor(ESensorType Sensor_Type, FName Tag);
 
-	const TArray<USensorBase*>& GetSensorsByType(ESensorType Sensor_Type) const;
-	TArray<USensorBase*>& GetSensorsByType(ESensorType Sensor_Type);
+	const TArray<TObjectPtr<USensorBase>>& GetSensorsByType(ESensorType Sensor_Type) const;
+	TArray<TObjectPtr<USensorBase>>& GetSensorsByType(ESensorType Sensor_Type);
 	
 	UFUNCTION(BlueprintCallable, BlueprintPure = false, Category = "SenseSystem|SenseReceiver", meta = (Keywords = "Get Sensors By Type"))
-	TArray<USensorBase*> GetSensorsByType_BP(ESensorType Sensor_Type) const;
+	TArray<TObjectPtr<USensorBase>> GetSensorsByType_BP(ESensorType Sensor_Type) const;
 
 
 	/*Get Sensor with force validation By Class*/
@@ -311,45 +311,41 @@ private:
 	};
 
 	template<class T>
-	static USensorBase* FindInArray_ByTag(const TArray<T*>& InArr, FName Tag);
+	static USensorBase* FindInArray_ByTag(const TArray<TObjectPtr<T>>& InArr, FName Tag);
+	template<class T>
+	static USensorBase* FindInArray_ByClass(const TArray<TObjectPtr<T>>& InArr, TSubclassOf<USensorBase> SensorClass);
 
 	template<class T>
-	static USensorBase* FindInArray_ByClass(const TArray<T*>& InArr, TSubclassOf<USensorBase> SensorClass);
-
+	static const TArray<TObjectPtr<USensorBase>>& TypeArr(const TArray<TObjectPtr<T>>& InArr);
 	template<class T>
-	static const TArray<USensorBase*>& TypeArr(const TArray<T*>& InArr);
-
-	template<class T>
-	static TArray<USensorBase*>& TypeArr(TArray<T*>& InArr);
+	static TArray<TObjectPtr<USensorBase>>& TypeArr(TArray<TObjectPtr<T>>& InArr);
 };
 
 
 template<class T>
-FORCEINLINE USensorBase* USenseReceiverComponent::FindInArray_ByTag(const TArray<T*>& InArr, const FName Tag)
+FORCEINLINE USensorBase* USenseReceiverComponent::FindInArray_ByTag(const TArray<TObjectPtr<T>>& InArr, const FName Tag)
 {
-	const TArray<USensorBase*>& Arr = TypeArr(InArr);
+	const auto& Arr = TypeArr(InArr);
 	const int32 ID = Arr.IndexOfByPredicate(FSensorByTagPredicate(Tag));
 	return ID != INDEX_NONE ? Arr[ID] : nullptr;
 }
-
 template<class T>
-FORCEINLINE USensorBase* USenseReceiverComponent::FindInArray_ByClass(const TArray<T*>& InArr, const TSubclassOf<USensorBase> SensorClass)
+FORCEINLINE USensorBase* USenseReceiverComponent::FindInArray_ByClass(const TArray<TObjectPtr<T>>& InArr, const TSubclassOf<USensorBase> SensorClass)
 {
-	const TArray<USensorBase*>& Arr = TypeArr(InArr);
+	const auto& Arr = TypeArr(InArr);
 	const int32 ID = Arr.IndexOfByPredicate(FObjectByClassPredicate(SensorClass));
 	return ID != INDEX_NONE ? Arr[ID] : nullptr;
 }
 
 template<class T>
-FORCEINLINE const TArray<USensorBase*>& USenseReceiverComponent::TypeArr(const TArray<T*>& InArr)
+FORCEINLINE const TArray<TObjectPtr<USensorBase>>& USenseReceiverComponent::TypeArr(const TArray<TObjectPtr<T>>& InArr)
 {
-	return reinterpret_cast<const TArray<USensorBase*>&>(InArr);
+	return reinterpret_cast<const TArray<TObjectPtr<USensorBase>>&>(InArr);
 }
-
 template<class T>
-FORCEINLINE TArray<USensorBase*>& USenseReceiverComponent::TypeArr(TArray<T*>& InArr)
+FORCEINLINE TArray<TObjectPtr<USensorBase>>& USenseReceiverComponent::TypeArr(TArray<TObjectPtr<T>>& InArr)
 {
-	return reinterpret_cast<TArray<USensorBase*>&>(InArr);
+	return reinterpret_cast<TArray<TObjectPtr<USensorBase>>&>(InArr);
 }
 
 

@@ -35,7 +35,7 @@ public:
 	/************************************/
 
 	UPROPERTY(BlueprintReadOnly, Category = "Sensor")
-	TArray<UPrimitiveComponent*> TouchCollisions;
+	TArray<TObjectPtr<UPrimitiveComponent>> TouchCollisions;
 
 	/************************************/
 

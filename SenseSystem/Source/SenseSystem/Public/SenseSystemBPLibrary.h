@@ -12,6 +12,7 @@
 
 class USenseStimulusBase;
 class USenseReceiverComponent;
+class USkinnedAsset;
 
 
 /**
@@ -25,8 +26,11 @@ struct SENSESYSTEM_API FSkeletalBoneIDCache //96 byte
 	FSkeletalBoneIDCache() {}
 	FSkeletalBoneIDCache(const class USkeletalMeshComponent* SkeletalMeshComponent, const TArray<FName>& BoneNames);
 
-	UPROPERTY(BlueprintReadOnly, Category = "SkeletalBoneIDCache") class USkeletalMesh* SkelMesh = nullptr;
-	UPROPERTY(BlueprintReadOnly, Category = "SkeletalBoneIDCache") TArray<int32> BoneIDs;
+	UPROPERTY(BlueprintReadOnly, Category = "SkeletalBoneIDCache") 
+	TObjectPtr<USkinnedAsset> SkelMesh = nullptr;
+
+	UPROPERTY(BlueprintReadOnly, Category = "SkeletalBoneIDCache") 
+	TArray<int32> BoneIDs;
 
 	bool Init(const class USkeletalMeshComponent* SkeletalMeshComponent, const TArray<FName>& BoneNames);
 	bool GetBoneLocations(const class USkeletalMeshComponent* SkeletalMeshComponent, TArray<FVector>& Out) const;

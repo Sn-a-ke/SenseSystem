@@ -75,7 +75,7 @@ bool FSkeletalBoneIDCache::Init(const class USkeletalMeshComponent* SkeletalMesh
 	bool bNoErrors = false;
 	if (SkeletalMeshComponent)
 	{
-		SkelMesh = SkeletalMeshComponent->SkeletalMesh;
+		SkelMesh = SkeletalMeshComponent->GetSkinnedAsset();
 		if (SkelMesh)
 		{
 			bNoErrors = true;
@@ -99,7 +99,7 @@ bool FSkeletalBoneIDCache::Init(const class USkeletalMeshComponent* SkeletalMesh
 
 bool FSkeletalBoneIDCache::GetBoneLocations(const class USkeletalMeshComponent* SkeletalMeshComponent, TArray<FVector>& Out) const
 {
-	if (IsValid(SkeletalMeshComponent) && SkelMesh == SkeletalMeshComponent->SkeletalMesh)
+	if (IsValid(SkeletalMeshComponent) && SkelMesh == SkeletalMeshComponent->GetSkinnedAsset())
 	{
 		Out.Reserve(BoneIDs.Num());
 		for (const int32 BnID : BoneIDs)
@@ -116,7 +116,7 @@ FSkeletalBoneIDCache::FSkeletalBoneIDCache(const class USkeletalMeshComponent* S
 {
 	if (SkeletalMeshComponent)
 	{
-		SkelMesh = SkeletalMeshComponent->SkeletalMesh;
+		SkelMesh = SkeletalMeshComponent->GetSkinnedAsset();
 		if (SkelMesh)
 		{
 			BoneIDs.Reserve(BoneNames.Num());
