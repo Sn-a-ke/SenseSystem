@@ -5,8 +5,11 @@
 !/SenseSystem/Source/**
 !/SenseSystem/Resources/**
 !/SenseSystem/Content/**
+!/doc/
+!/doc/**
 !*.uplugin
-
+!clang-format
+!*.md
 
 # Windows
 ehthumbs.db
