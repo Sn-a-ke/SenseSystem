@@ -107,16 +107,16 @@ https://i.imgur.com/udPogI0.png
 
 ## 7.4 v1.24 - 2022-10-06
 
-**1.** Замена массивов на каналы с 64-битным флагомhttps://i.imgur.com/8rWPTO6.mp4
-**2.** Нулевой канал теперь недействителен - и означает отсутствие значения, это более
-последовательная логика каналов.
-**3.** Обновление значений ваших сохраненных ресурсов будет обновляться
-автоматически, когда вы откроете и сохраните актив (каналы будут сдвинуты на +1)
-**4.** Обновленные функции для настройки значений каналов
-**5.** Все старые переменные и функции, связанные с каналами и массивами, помечены
-как DEPRECATED
+**1.** Replacing arrays with channels with 64-bit flag https://i.imgur.com/8rWPTO6.mp4
+**2.** Channel zero is now invalid - and means no value, it's more
+sequential channel logic.
+**3.** Updating the values ​​of your saved resources will be updated
+automatically when you open and save an asset (channels will be shifted by +1)
+**4.** Updated functions for setting channel values
+**5.** All old variables and functions associated with channels and arrays are marked
+as DEPRECATED
 
-**Хотя это обновление вызовет небольшие неудобства - чтобы повторно сохранить
-текущие активы, я постарался свести эти неудобства к минимуму, чтобы оно было
-автоматическим. Тем не менее, если вы используете значения канала где-то во внешнем коде,
-его необходимо обновить.**
+**Although this update will cause some inconvenience - to re-save
+current assets, I tried to keep these inconveniences to a minimum so that it was
+automatic. However, if you are using channel values ​​somewhere in external code,
+it needs to be updated.**
