@@ -98,7 +98,7 @@ then it is forbidden to call thread-unsafe functions in the method
         - 1. **Sensed** - detection was successful
         - 2. **NotLost** - detection failed but the object will notbe lost if it was previously detected
         - 3. **Lost** - detection failed
- - 3. Initialize - имплементация инициализации
+ - 3. Initialize - implementation of initialization
 
 
 ## 7. CustomSensor
