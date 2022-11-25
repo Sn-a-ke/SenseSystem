@@ -5,8 +5,8 @@
 !/SenseSystem/Source/**
 !/SenseSystem/Resources/**
 !/SenseSystem/Content/**
-!/doc/
-!/doc/**
+!/docs/
+!/docs/**
 !*.uplugin
 !clang-format
 !*.md
