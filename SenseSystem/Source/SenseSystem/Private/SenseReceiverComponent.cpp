@@ -366,9 +366,10 @@ void USenseReceiverComponent::AddTrackTargetComponent(USenseStimulusBase* Comp)
 
 void USenseReceiverComponent::RemoveTrackTargetComponent(USenseStimulusBase* Comp)
 {
-	if (Comp && !IsPendingKill())
+	if (IsValid(Comp) && IsValid(Comp->GetOwner()))
 	{
-		if (IsValid(Comp) && IsValid(Comp->GetOwner()))
+		const int32 MainTargetID = HashSorted::BinarySearch_HashType(TrackTargetComponents, GetTypeHash(Comp));
+		if (MainTargetID != INDEX_NONE)
 		{
 			const AActor* SelfOwner = GetOwner();
 			if (Comp->IsSensedFrom(SelfOwner, NAME_None))
@@ -380,8 +381,8 @@ void USenseReceiverComponent::RemoveTrackTargetComponent(USenseStimulusBase* Com
 			{
 				OnMainTargetStatusChanged.Broadcast(Comp->GetOwner(), FSensedStimulus(), EOnSenseEvent::SenseForget);
 			}
+			TrackTargetComponents.RemoveAt(MainTargetID);
 		}
-		HashSorted::Remove(TrackTargetComponents, Comp);
 	}
 }
 
