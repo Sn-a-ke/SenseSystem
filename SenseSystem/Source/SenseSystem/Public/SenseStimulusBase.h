@@ -81,7 +81,7 @@ public:
 	float Score = 1.f;
 
 	/** ReceiveStimulusFlag */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SenseStimulus", meta = (Bitmask, BitmaskEnum = "EReceiveStimulusFlag"))
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SenseStimulus", meta = (Bitmask, BitmaskEnum = "/Script/SenseSystem.EReceiveStimulusFlag"))
 	uint8 ReceiveStimulusFlag =											   //
 		static_cast<uint8>(EReceiveStimulusFlag::DetectGlobalSenseState) | //
 		static_cast<uint8>(EReceiveStimulusFlag::ReceiveOnNewSensed) |	   //
