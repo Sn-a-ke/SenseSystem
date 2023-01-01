@@ -37,11 +37,15 @@ struct FTreeDrawSetup
 class SENSESYSTEM_API IContainerTree
 {
 public:
-	virtual ~IContainerTree() {}
+	IContainerTree() = default;
+	virtual ~IContainerTree() = default;
 
-protected:
 	virtual TSparseArray<FSensedStimulus>& GetCompDataPool() = 0;
 	virtual const TSparseArray<FSensedStimulus>& GetCompDataPool() const = 0;
+
+	void Lock() {RWLock.WriteLock();}
+	void UnLock() {RWLock.WriteUnlock();}
+protected:
 
 	mutable FIndexRemoveControl IndexRemoveControl;
 	mutable FRWLock RWLock;

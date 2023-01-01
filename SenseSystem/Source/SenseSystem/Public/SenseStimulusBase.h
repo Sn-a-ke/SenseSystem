@@ -167,6 +167,7 @@ public:
 	USenseStimulusBase(const FObjectInitializer& ObjectInitializer);
 	virtual ~USenseStimulusBase() override;
 
+	friend class USenseManager;
 private:
 	
 	USenseManager* SenseManager = nullptr;
