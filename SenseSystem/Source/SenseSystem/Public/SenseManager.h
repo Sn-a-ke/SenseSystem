@@ -24,6 +24,7 @@ class USenseStimulusBase;
 class USenseReceiverComponent;
 class IContainerTree;
 class UObject;
+class FSenseRunnable;
 
 /**
 * RegisteredSensorTags struct
@@ -33,6 +34,7 @@ struct SENSESYSTEM_API FRegisteredSensorTags : FNoncopyable
 	FRegisteredSensorTags();
 	~FRegisteredSensorTags();
 
+	friend class USenseManager;
 
 	bool AddSenseStimulus(USenseStimulusBase* Ssc);
 	bool RemoveSenseStimulus(USenseStimulusBase* Ssc);
@@ -44,6 +46,7 @@ struct SENSESYSTEM_API FRegisteredSensorTags : FNoncopyable
 	IContainerTree* GetContainerTree(const FName& Tag);
 
 	void Empty();
+	void Remove(const FName SensorTag);
 	void CollapseAllTrees();
 	bool IsValidTag(const FName& SensorTag) const;
 	const TMap<FName, TUniquePtr<IContainerTree>>& GetMap() const { return SenseRegChannels; }
@@ -80,6 +83,7 @@ public:
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnObjStatusChanged, UObject*, Obj);
 
 	USenseManager();
+	USenseManager(FVTableHelper& Helper);
 	virtual ~USenseManager() override;
 
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
@@ -93,7 +97,6 @@ public:
 
 	/**static SenseManager getter*/
 	static USenseManager* GetSenseManager(const UObject* WorldContext);
-
 
 public:
 	FTickingTimer TickingTimer = FTickingTimer(0.5f);
@@ -135,7 +138,8 @@ public:
 
 	UPROPERTY()
 	TSet<USenseReceiverComponent*> Receivers;
-
+	UPROPERTY()
+	TSet<USenseStimulusBase*> StimulsWorldOrigin;
 
 	bool RegisterSenseReceiver(USenseReceiverComponent* Receiver);
 	bool UnRegisterSenseReceiver(USenseReceiverComponent* Receiver);
@@ -151,13 +155,19 @@ public:
 	void Remove_SenseStimulus(USenseStimulusBase* Ssc, const FName& SensorTag, FStimulusTagResponse& Str);
 
 
-	void ChangeSensorThreadType(const USenseReceiverComponent* Receiver, const ESensorThreadType NewSensorThreadType, const ESensorThreadType OldSensorThreadType);
+	void ChangeSensorThreadType(
+		const USenseReceiverComponent* Receiver,
+		const ESensorThreadType NewSensorThreadType,
+		const ESensorThreadType OldSensorThreadType);
 
 	bool HaveReceivers() const;
 	bool HaveSenseStimulus() const;
 
 	bool IsHaveStimulusTag(const FName Tag) const;
 	bool IsHaveReceiverTag(const FName Tag) const;
+
+	void PreWorldOriginOffsetUpdt(UWorld* InWorld, FIntVector OriginLocation, FIntVector NewOriginLocation);
+	void PostWorldOriginOffsetUpdt(UWorld* InWorld, FIntVector OriginLocation, FIntVector NewOriginLocation);
 
 #if WITH_EDITORONLY_DATA
 	UPROPERTY(BlueprintReadWrite, Category = "SenseSystem|SenseManager")
@@ -187,30 +197,14 @@ private:
 
 	uint32 StimulusCount = 0;
 
-	/** Deleter for forward class FSenseRunnable */
-	struct FDeleterSR
-	{
-		FDeleterSR() = default;
-		FDeleterSR(const FDeleterSR&) = default;
-		~FDeleterSR() = default;
-		FDeleterSR& operator=(const FDeleterSR&) = default;
-		void operator()(class FSenseRunnable* Ptr) const;
-		template<typename U, typename = typename TEnableIf<TPointerIsConvertibleFromTo<U, class FSenseRunnable>::Value>::Type>
-		FDeleterSR(const TDefaultDelete<U>&)
-		{}
-		template<typename U, typename = typename TEnableIf<TPointerIsConvertibleFromTo<U, class FSenseRunnable>::Value>::Type>
-		FDeleterSR& operator=(const TDefaultDelete<U>&)
-		{
-			return *this;
-		}
-	};
 	/**SenseThread ptr*/
-	TUniquePtr<class FSenseRunnable, FDeleterSR> SenseThread = nullptr;
+	TUniquePtr<FSenseRunnable> SenseThread = nullptr;
 
 	/**Create Sense Thread*/
 	void Create_SenseThread();
 
 #if WITH_EDITORONLY_DATA
+
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SenseSystem|SenseManager")
 	FSenseSysDebugDraw SenseSysDebugDraw;
@@ -223,55 +217,3 @@ public:
 
 #endif
 };
-
-FORCEINLINE bool FRegisteredSensorTags::IsValidTag(const FName& SensorTag) const
-{
-	return SenseRegChannels.Contains(SensorTag);
-}
-
-FORCEINLINE bool USenseManager::IsHaveStimulusTag(const FName Tag) const
-{
-	return RegisteredSensorTags.IsValidTag(Tag);
-}
-FORCEINLINE bool USenseManager::IsHaveReceiverTag(const FName Tag) const
-{
-	return TagReceiversCount.Contains(Tag);
-}
-
-FORCEINLINE void USenseManager::Add_SenseStimulus(USenseStimulusBase* Ssc, const FName& SensorTag, FStimulusTagResponse& Str)
-{
-	RegisteredSensorTags.Add_SenseStimulus(Ssc, SensorTag, Str);
-}
-FORCEINLINE void USenseManager::Remove_SenseStimulus(USenseStimulusBase* Ssc, const FName& SensorTag, FStimulusTagResponse& Str)
-{
-	RegisteredSensorTags.Remove_SenseStimulus(Ssc, SensorTag, Str);
-}
-
-FORCEINLINE bool USenseManager::HaveReceivers() const
-{
-	return Receivers.Num() > 0;
-}
-FORCEINLINE bool USenseManager::HaveSenseStimulus() const
-{
-	return RegisteredSensorTags.GetMap().Num() > 0;
-}
-
-FORCEINLINE bool USenseManager::SenseThread_CreateIfNeed()
-{
-	if (!SenseThread.IsValid() && ContainsThreadCount != 0 && HaveSenseStimulus())
-	{
-		Create_SenseThread();
-		return true;
-	}
-	return false;
-}
-
-FORCEINLINE bool USenseManager::SenseThread_DeleteIfNeed() //
-{
-	if (ContainsThreadCount == 0 || !HaveSenseStimulus())
-	{
-		Close_SenseThread();
-		return true;
-	}
-	return false;
-}
