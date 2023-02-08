@@ -8,7 +8,6 @@
 #include "SenseReceiverComponent.h"
 #include "SenseStimulusBase.h"
 #include "HashSorted.h"
-#include "BaseSensorTask.h"
 #include "QtOtContainer.h"
 
 //#include "UObject/UObjectGlobals.h"

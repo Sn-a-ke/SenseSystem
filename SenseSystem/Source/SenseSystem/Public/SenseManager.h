@@ -14,7 +14,7 @@
 #include "SenseSysHelpers.h"
 #include "SensedStimulStruct.h"
 #include "Sensors/SensorBase.h"
-
+#include "BaseSensorTask.h"
 
 #include "SenseManager.generated.h"
 
