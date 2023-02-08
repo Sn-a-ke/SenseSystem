@@ -436,13 +436,19 @@ TArray<TObjectPtr<USensorBase>>& USenseReceiverComponent::GetSensorsByType(ESens
 	return TypeArr(ActiveSensors);
 }
 
-TArray<TObjectPtr<USensorBase>> USenseReceiverComponent::GetSensorsByType_BP(const ESensorType Sensor_Type) const
+TArray<USensorBase*> USenseReceiverComponent::GetSensorsByType_BP(const ESensorType Sensor_Type) const
 {
+	TArray<USensorBase*> Out;
 	if (Sensor_Type != ESensorType::None)
 	{
-		return GetSensorsByType(Sensor_Type);
+		const auto& Arr = GetSensorsByType(Sensor_Type);
+		Out.Reserve(Arr.Num());
+		for (auto It : Arr)
+		{
+			Out.Add(It);
+		}
 	}
-	return TArray<TObjectPtr<USensorBase>>{};
+	return Out;
 }
 
 USensorBase* USenseReceiverComponent::GetSensor_ByClass(TSubclassOf<USensorBase> SensorClass, ESuccessState& SuccessState) const
