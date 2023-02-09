@@ -2798,7 +2798,7 @@ USensorTestBase* USensorBase::CreateNewSensorTest(const TSubclassOf<USensorTestB
 				}
 			}
 		}
-		return SensorTests.Last();
+		return SensorTests[SensorTestIndexPlace];
 	}
 	return nullptr;
 }
