@@ -102,8 +102,9 @@ struct TTreeBox
 		MinimumQuadSize = FMath::Abs(MinimumQuadSize);
 		for (int32 i = 0; i < DimensionSize; ++i)
 		{
-			const int32 Li = FMath::CeilToInt(L[i] / MinimumQuadSize);
-
+			const Real Value = L[i] / MinimumQuadSize;
+			int32 Li = FMath::CeilToInt(Value);
+			Li += int32(Li == FMath::FloorToInt(Value));
 			Mi[i] = (Li - 1) * MinimumQuadSize;
 			if (Mi[i] >= L[i]) // unreliable CeilToInt
 			{
