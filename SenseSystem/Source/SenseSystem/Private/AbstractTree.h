@@ -95,35 +95,16 @@ struct TTreeBox
 	TTreeBox(PointType InMin, PointType InMax) : Min(InMin), Max(InMax), Center((InMax + InMin) * 0.5f) {}
 	TTreeBox(PointType Location, float MinimumQuadSize)
 	{
-		/*//test body
-		const float MIN = -90000000.f;
-		const float MAX = 90000000.f;
-		const int32 N = 10000000;
-		for (int32 i = 0; i < N; ++i)
-		{
-			const FVector V = FVector(
-				UKismetMathLibrary::RandomFloatInRange(MIN, MAX),
-				UKismetMathLibrary::RandomFloatInRange(MIN, MAX),
-				UKismetMathLibrary::RandomFloatInRange(MIN, MAX));
-			TTreeBox<FVector, 3> Box(V, 1000.f);
-		
-			check(!Box.Min.ContainsNaN());
-			check(!Box.Max.ContainsNaN());
-		}
-		*/
-
-		const float* RESTRICT L = reinterpret_cast<const float*>(&Location);
-		float* RESTRICT Mi = reinterpret_cast<float*>(&Min);
-		float* RESTRICT Ma = reinterpret_cast<float*>(&Max);
+		const Real* RESTRICT L = reinterpret_cast<const Real*>(&Location);
+		Real* RESTRICT Mi = reinterpret_cast<Real*>(&Min);
+		Real* RESTRICT Ma = reinterpret_cast<Real*>(&Max);
 
 		MinimumQuadSize = FMath::Abs(MinimumQuadSize);
 		for (int32 i = 0; i < DimensionSize; ++i)
 		{
-			const int32 Li = FMath::CeilToInt(L[i] / MinimumQuadSize);
-			/*// old native code
-			Max[i] = Li * MinimumQuadSize;
-			Min[i] = Max[i] - MinimumQuadSize;
-			*/
+			const Real Value = L[i] / MinimumQuadSize;
+			int32 Li = FMath::CeilToInt(Value);
+			Li += int32(Li == FMath::FloorToInt(Value));
 			Mi[i] = (Li - 1) * MinimumQuadSize;
 			if (Mi[i] >= L[i]) // unreliable CeilToInt
 			{
