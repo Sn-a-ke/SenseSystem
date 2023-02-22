@@ -24,7 +24,7 @@ class USenseStimulusBase;
 class USenseReceiverComponent;
 class IContainerTree;
 class UObject;
-class FSenseRunnable;
+
 
 /**
 * RegisteredSensorTags struct
