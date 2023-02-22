@@ -14,7 +14,7 @@
 #include "SenseSysHelpers.h"
 #include "SensedStimulStruct.h"
 #include "Sensors/SensorBase.h"
-
+#include "BaseSensorTask.h"
 
 #include "SenseManager.generated.h"
 
@@ -24,7 +24,7 @@ class USenseStimulusBase;
 class USenseReceiverComponent;
 class IContainerTree;
 class UObject;
-class FSenseRunnable;
+
 
 /**
 * RegisteredSensorTags struct
