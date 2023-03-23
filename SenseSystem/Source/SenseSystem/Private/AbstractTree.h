@@ -87,7 +87,7 @@ namespace TreeHelper
 template<typename PointType, uint32 DimensionSize>
 struct TTreeBox
 {
-	// todo PointType float? type - reinterpret_cast<const float*>(&Point);
+	using Real = float;
 
 	TTreeBox() : Min(0), Max(0), Center(0) {}
 	explicit TTreeBox(float HalfSize) : Min(PointType(-HalfSize, -HalfSize)), Max(PointType(HalfSize, HalfSize)), Center((Max + Min) * 0.5f) {}
