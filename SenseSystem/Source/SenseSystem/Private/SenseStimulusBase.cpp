@@ -268,7 +268,7 @@ void USenseStimulusBase::OnComponentDestroyed(const bool bDestroyingHierarchy)
 void USenseStimulusBase::SetComponentTickEnabled(const bool bTickEnabled)
 {
 	ResetDelayTickStart();
-	if (bEnable || !bTickEnabled && !bEnable)
+	if (bEnable || !bTickEnabled)
 	{
 		Super::SetComponentTickEnabled(bTickEnabled);
 	}
