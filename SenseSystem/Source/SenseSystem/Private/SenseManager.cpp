@@ -15,6 +15,7 @@
 #include "Async/ParallelFor.h"
 #include "Engine/Engine.h"
 #include "Engine/World.h"
+#include "Misc/CoreDelegates.h"
 
 #include "DrawDebugHelpers.h"
 
