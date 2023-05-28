@@ -9,6 +9,7 @@
 #include "HAL/ThreadSafeCounter.h"
 #include "HAL/ThreadSafeBool.h"
 #include "Async/TaskGraphInterfaces.h"
+#include "Async/AsyncWork.h"
 #include "Delegates/DelegateSignatureImpl.inl"
 #include "Containers/Map.h"
 #include "Containers/Array.h"
@@ -17,6 +18,7 @@
 #include "SenseSysHelpers.h"
 #include "SensedStimulStruct.h"
 #include "Sensors/Tests/SensorTestBase.h"
+#include "SensedStimulStruct.h"
 
 #if WITH_EDITORONLY_DATA
 	#include "SceneManagement.h"

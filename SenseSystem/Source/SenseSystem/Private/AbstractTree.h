@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <type_traits>
+
 #include "HAL/Platform.h"
 #include "Misc/AssertionMacros.h"
 #include "Templates/UnrealTemplate.h"
@@ -473,8 +475,8 @@ class TTree_Base
 public:
 	static constexpr uint32 InlineAllocatorSize =														  //
 		(DimensionSize == 2U)																			  //
-		? (TIsSame<IndexQtType, uint32>::Value ? 28U : (TIsSame<IndexQtType, uint16>::Value ? 36U : 0U))  //
-		: (TIsSame<IndexQtType, uint32>::Value ? 10U : (TIsSame<IndexQtType, uint16>::Value ? 24U : 0U)); //
+		? (std::is_same<IndexQtType, uint32>::value ? 28U : (std::is_same<IndexQtType, uint16>::value ? 36U : 0U))	//
+		: (std::is_same<IndexQtType, uint32>::value ? 10U : (std::is_same<IndexQtType, uint16>::value ? 24U : 0U)); //
 
 	using TreeElementIdxType = uint16;
 	using TreeNodeType = TTreeNode<TreeElementIdxType, IndexQtType, PointType, DimensionSize, InlineAllocatorSize>;
@@ -494,7 +496,7 @@ private:
 		IndexQtType TreeID;
 	};
 
-	static constexpr bool bElementVector = TIsSame<ElementType, PointType>::Value;
+	static constexpr bool bElementVector = std::is_same<ElementType, PointType>::value;
 	using VectorOrBox = typename TChooseClass<bElementVector, PointType, BoxType>::Result;
 	using TreeData = typename TChooseClass<bElementVector, IndexQtType, TreeIdxBox>::Result;
 
@@ -549,46 +551,46 @@ public:
 	FORCEINLINE ElementType& GetElement(const TreeElementIdxType ObjID) { return GetElementPool()[static_cast<int32>(ObjID)]; }
 
 	template<typename T = ElementType>
-	FORCEINLINE typename TEnableIf<TIsSame<T, PointType>::Value, const PointType&>::Type GetElementBox(const TreeElementIdxType ObjID) const
+	FORCEINLINE typename TEnableIf<std::is_same<T, PointType>::value, const PointType&>::Type GetElementBox(const TreeElementIdxType ObjID) const
 	{
 		return GetElement(ObjID);
 	}
 	template<typename T = ElementType>
-	FORCEINLINE typename TEnableIf<TIsSame<T, PointType>::Value, PointType&>::Type GetElementBox(const TreeElementIdxType ObjID)
+	FORCEINLINE typename TEnableIf<std::is_same<T, PointType>::value, PointType&>::Type GetElementBox(const TreeElementIdxType ObjID)
 	{
 		return GetElement(ObjID);
 	}
 
 	template<typename T = ElementType>
-	FORCEINLINE typename TEnableIf<TIsSame<T, PointType>::Value, IndexQtType>::Type GetElementTreeID(const TreeElementIdxType ObjID) const
+	FORCEINLINE typename TEnableIf<std::is_same<T, PointType>::value, IndexQtType>::Type GetElementTreeID(const TreeElementIdxType ObjID) const
 	{
 		return Data[static_cast<int32>(ObjID)];
 	}
 	template<typename T = ElementType>
-	FORCEINLINE typename TEnableIf<TIsSame<T, PointType>::Value, IndexQtType&>::Type GetElementTreeID(const TreeElementIdxType ObjID)
+	FORCEINLINE typename TEnableIf<std::is_same<T, PointType>::value, IndexQtType&>::Type GetElementTreeID(const TreeElementIdxType ObjID)
 	{
 		return Data[static_cast<int32>(ObjID)];
 	}
 
 
 	template<typename T = ElementType>
-	FORCEINLINE typename TEnableIf<!TIsSame<T, PointType>::Value, const BoxType&>::Type GetElementBox(const TreeElementIdxType ObjID) const
+	FORCEINLINE typename TEnableIf<!std::is_same<T, PointType>::value, const BoxType&>::Type GetElementBox(const TreeElementIdxType ObjID) const
 	{
 		return Data[static_cast<int32>(ObjID)].Box;
 	}
 	template<typename T = ElementType>
-	FORCEINLINE typename TEnableIf<!TIsSame<T, PointType>::Value, BoxType&>::Type GetElementBox(const TreeElementIdxType ObjID)
+	FORCEINLINE typename TEnableIf<!std::is_same<T, PointType>::value, BoxType&>::Type GetElementBox(const TreeElementIdxType ObjID)
 	{
 		return Data[static_cast<int32>(ObjID)].Box;
 	}
 
 	template<typename T = ElementType>
-	FORCEINLINE typename TEnableIf<!TIsSame<T, PointType>::Value, IndexQtType>::Type GetElementTreeID(const TreeElementIdxType ObjID) const
+	FORCEINLINE typename TEnableIf<!std::is_same<T, PointType>::value, IndexQtType>::Type GetElementTreeID(const TreeElementIdxType ObjID) const
 	{
 		return Data[static_cast<int32>(ObjID)].TreeID;
 	}
 	template<typename T = ElementType>
-	FORCEINLINE typename TEnableIf<!TIsSame<T, PointType>::Value, IndexQtType&>::Type GetElementTreeID(const TreeElementIdxType ObjID)
+	FORCEINLINE typename TEnableIf<!std::is_same<T, PointType>::value, IndexQtType&>::Type GetElementTreeID(const TreeElementIdxType ObjID)
 	{
 		return Data[static_cast<int32>(ObjID)].TreeID;
 	}
@@ -596,18 +598,18 @@ public:
 
 private:
 	template<typename T = ElementType>
-	FORCEINLINE typename TEnableIf<TIsSame<T, PointType>::Value, void>::Type InsertNewData(const TreeElementIdxType ObjID, const PointType&)
+	FORCEINLINE typename TEnableIf<std::is_same<T, PointType>::value, void>::Type InsertNewData(const TreeElementIdxType ObjID, const PointType&)
 	{
 		Data.Insert(static_cast<int32>(ObjID), MaxIndexQt);
 	}
 	template<typename T = ElementType>
-	FORCEINLINE typename TEnableIf<!TIsSame<T, PointType>::Value, void>::Type InsertNewData(const TreeElementIdxType ObjID, const BoxType& InBox)
+	FORCEINLINE typename TEnableIf<!std::is_same<T, PointType>::value, void>::Type InsertNewData(const TreeElementIdxType ObjID, const BoxType& InBox)
 	{
 		Data.Insert(static_cast<int32>(ObjID), TreeData(MaxIndexQt, InBox));
 	}
 
 	template<typename T = ElementType>
-	FORCEINLINE typename TEnableIf<TIsSame<T, PointType>::Value, TreeElementIdxType>::Type Insert(const PointType& Element)
+	FORCEINLINE typename TEnableIf<std::is_same<T, PointType>::value, TreeElementIdxType>::Type Insert(const PointType& Element)
 	{
 		const int32 Idx = this->Insert(Element, Element);
 		return static_cast<TreeElementIdxType>(Idx);
@@ -1733,12 +1735,12 @@ private:
 
 
 	template<typename T = ElementType>
-	FORCEINLINE typename TEnableIf<TIsSame<T, PointType>::Value, FVector>::Type GetExtentFrom(const PointType& P) const
+	FORCEINLINE typename TEnableIf<std::is_same<T, PointType>::value, FVector>::Type GetExtentFrom(const PointType& P) const
 	{
 		return FVector(0.f);
 	}
 	template<typename T = ElementType>
-	FORCEINLINE typename TEnableIf<!TIsSame<T, PointType>::Value, FVector>::Type GetExtentFrom(const BoxType& P) const
+	FORCEINLINE typename TEnableIf<!std::is_same<T, PointType>::value, FVector>::Type GetExtentFrom(const BoxType& P) const
 	{
 		return P.GetExtent();
 	}
