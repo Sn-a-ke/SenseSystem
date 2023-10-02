@@ -32,6 +32,7 @@
 	#include "UObject/Package.h"
 
 	#include "DrawDebugHelpers.h"
+	#include "Misc/DataValidation.h"
 #endif
 
 
@@ -876,9 +877,9 @@ TArray<FStimulusFindResult> USensorBase::UnRegisterSenseStimulus(USenseStimulusB
 
 		if (const FStimulusTagResponse* StrPtr = Ssc->GetStimulusTagResponse(SensorTag))
 		{
-			if ((BitChannels.Value & (*StrPtr).BitChannels.Value & ~IgnoreBitChannels.Value))
+			if ((BitChannels.Value & StrPtr->BitChannels.Value & ~IgnoreBitChannels.Value))
 			{
-				const uint16 InStimulusID = (*StrPtr).GetObjID();
+				const uint16 InStimulusID = StrPtr->GetObjID();
 				if (InStimulusID != MAX_uint16)
 				{
 					FScopeLock Lock_CriticalSection(&SensorCriticalSection);
@@ -955,7 +956,7 @@ void USensorBase::ReportSenseStimulusEvent(USenseStimulusBase* SenseStimulus)
 	{
 		if (const FStimulusTagResponse* StrPtr = SenseStimulus->GetStimulusTagResponse(SensorTag))
 		{
-			const uint16 InStimulusID = (*StrPtr).GetObjID();
+			const uint16 InStimulusID = StrPtr->GetObjID();
 			if (InStimulusID != MAX_uint16)
 			{
 				ReportSenseStimulusEvent(InStimulusID);
@@ -1467,7 +1468,7 @@ bool USensorBase::CheckResponseChannel(const USenseStimulusBase* StimulusCompone
 	{
 		if (const FStimulusTagResponse* StrPtr = StimulusComponent->GetStimulusTagResponse(SensorTag))
 		{
-			return (BitChannels.Value & (*StrPtr).BitChannels.Value & ~IgnoreBitChannels.Value);
+			return (BitChannels.Value & StrPtr->BitChannels.Value & ~IgnoreBitChannels.Value);
 		}
 	}
 	return false;
@@ -1667,7 +1668,7 @@ void USensorBase::OnSensorReadyFail()
 }
 
 
-int32 USensorBase::FindInSortedArray(const TArray<FSensedStimulus>& Array, const FSensedStimulus& SensedStimulus) const
+int32 USensorBase::FindInSortedArray(const TArray<FSensedStimulus>& Array, const FSensedStimulus& SensedStimulus)
 {
 	if (SensedStimulus.StimulusComponent.IsValid())
 	{
@@ -1676,7 +1677,7 @@ int32 USensorBase::FindInSortedArray(const TArray<FSensedStimulus>& Array, const
 	return INDEX_NONE;
 }
 
-int32 USensorBase::FindInSortedArray(const TArray<FSensedStimulus>& Array, const USenseStimulusBase* SensedStimulus) const
+int32 USensorBase::FindInSortedArray(const TArray<FSensedStimulus>& Array, const USenseStimulusBase* SensedStimulus)
 {
 	if (SensedStimulus)
 	{
@@ -1685,10 +1686,9 @@ int32 USensorBase::FindInSortedArray(const TArray<FSensedStimulus>& Array, const
 	return INDEX_NONE;
 }
 
-int32 USensorBase::FindInSortedArray(const TArray<FSensedStimulus>& Array, const AActor* Actor) const
+int32 USensorBase::FindInSortedArray(const TArray<FSensedStimulus>& Array, const AActor* Actor)
 {
-	const auto SensedStimulus = USenseSystemBPLibrary::GetStimulusFromActor(Actor);
-	if (SensedStimulus)
+	if (const auto SensedStimulus = USenseSystemBPLibrary::GetStimulusFromActor(Actor))
 	{
 		return HashSorted::BinarySearch_HashType(Array, GetTypeHash(SensedStimulus));
 	}
@@ -2104,7 +2104,7 @@ TArray<FSensedStimulus> USensorBase::FindBestScoreSensed(uint8 InChannel, int32 
 				ArrayView = TArrayView<const int32>(ScoreIdx.GetData(), Count);
 			}
 
-			for (int32 i : ArrayView)
+			for (const int32 i : ArrayView)
 			{
 				Out.Add(SensedArr[i]);
 			}
@@ -2322,7 +2322,7 @@ void USensorBase::PostEditChangeProperty(struct FPropertyChangedEvent& e)
 	Super::PostEditChangeProperty(e);
 }
 
-EDataValidationResult USensorBase::IsDataValid(TArray<FText>& ValidationErrors)
+EDataValidationResult USensorBase::IsDataValid(FDataValidationContext& ValidationErrors)
 {
 	EDataValidationResult eIsValid = Super::IsDataValid(ValidationErrors);
 
@@ -2330,8 +2330,8 @@ EDataValidationResult USensorBase::IsDataValid(TArray<FText>& ValidationErrors)
 	{
 		if (!IsValid(It))
 		{
-			const FText ErrText = FText::FromString((TEXT("Sensor containes Invalid Sensor test: %s"), *GetNameSafe(It)));
-			ValidationErrors.Add(ErrText);
+			const FText ErrText = FText::FromString((TEXT("Sensor contains Invalid Sensor test: %s"), *GetNameSafe(It)));
+			ValidationErrors.AddError(ErrText);
 			eIsValid = CombineDataValidationResults(eIsValid, EDataValidationResult::Invalid);
 		}
 	}
@@ -2340,7 +2340,7 @@ EDataValidationResult USensorBase::IsDataValid(TArray<FText>& ValidationErrors)
 	{
 		Algo::Sort(ChannelSetup, TLess<uint8>());
 		const FText ErrText = FText::FromString((TEXT("ChannelSetup is Unsorted in USensorBase: %s"), *GetNameSafe(this)));
-		ValidationErrors.Add(ErrText);
+		ValidationErrors.AddError(ErrText);
 		eIsValid = CombineDataValidationResults(eIsValid, EDataValidationResult::Invalid);
 	}
 
@@ -2350,7 +2350,7 @@ EDataValidationResult USensorBase::IsDataValid(TArray<FText>& ValidationErrors)
 		{ return (ID > 0 && A[ID] == A[ID - 1]) || A[ID].Channel > 64 || A[ID].Channel <= 0; };
 		ArrayHelpers::Filter_Sorted(ChannelSetup, Predicate);
 		const FText ErrText = FText::FromString((TEXT("Duplicates in ChannelSetup USensorBase: %s"), *GetNameSafe(this)));
-		ValidationErrors.Add(ErrText);
+		ValidationErrors.AddError(ErrText);
 		eIsValid = CombineDataValidationResults(eIsValid, EDataValidationResult::Invalid);
 	}
 

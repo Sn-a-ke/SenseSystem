@@ -39,7 +39,7 @@ class SENSESYSTEM_API IContainerTree
 public:
 	IContainerTree() = default;
 	virtual ~IContainerTree() = default;
-	using Real = typename FVector::FReal;
+	using Real = FVector::FReal;
 
 	virtual TSparseArray<FSensedStimulus>& GetCompDataPool() = 0;
 	virtual const TSparseArray<FSensedStimulus>& GetCompDataPool() const = 0;
@@ -120,13 +120,17 @@ private:
 	virtual const TSparseArray<FSensedStimulus>& GetCompDataPool() const override { return Tree.GetElementPool(); }
 
 public:
-	using Real = typename FVector::FReal;
+	using Real = FVector::FReal;
 	
-	FSenseSys_QuadTree(const Real MinimumQuadSize, const int32 InNodeCantSplit = 8, const int32 OtCount = 128, const int32 ObjCount = 128)
+	FSenseSys_QuadTree( //
+		const Real MinimumQuadSize,
+		const int32 InNodeCantSplit = 8,
+		const int32 OtCount = 128,
+		const int32 ObjCount = 128)
 		: Tree(MinimumQuadSize, InNodeCantSplit, OtCount, ObjCount)
 	{
 #if WITH_EDITOR
-		UE_LOG(LogSenseSys, Warning, TEXT("SenseSys_QuadTree created"));
+		UE_LOG(LogSenseSys, Log, TEXT("SenseSys_QuadTree created"));
 #endif
 	}
 
@@ -219,13 +223,17 @@ private:
 
 public:
 
-	using Real = typename FVector::FReal;
+	using Real = FVector::FReal;
 
-	FSenseSys_OcTree(const Real MinimumCubeSize, const int32 InNodeCantSplit = 8, const int32 OtCount = 128, const int32 ObjCount = 128)
+	FSenseSys_OcTree( //
+		const Real MinimumCubeSize,
+		const int32 InNodeCantSplit = 8,
+		const int32 OtCount = 128,
+		const int32 ObjCount = 128)
 		: Tree(MinimumCubeSize, InNodeCantSplit, OtCount, ObjCount)
 	{
 #if WITH_EDITOR
-		UE_LOG(LogSenseSys, Warning, TEXT("SenseSys_OcTree created"));
+		UE_LOG(LogSenseSys, Log, TEXT("SenseSys_OcTree created"));
 #endif
 	}
 

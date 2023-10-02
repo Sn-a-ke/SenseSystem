@@ -89,6 +89,9 @@ public:
 	UPROPERTY()
 	uint64 BitChannels = 0; // 8 byte //todo replace type to  FBitFlag64_SenseSys
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Transient, Category = "SensedStimulus")
+	TWeakObjectPtr<UObject> StimulusMeta;  // 8 byte //todo: StimulusDataIdx
+
 	/** SensedPoints */
 	UPROPERTY(BlueprintReadOnly, SkipSerialization, Transient, Category = "SensedStimulus")
 	TArray<FSensedPoint> SensedPoints; // 16 byte and dynamic memory allocation
@@ -131,7 +134,6 @@ public:
 		return *this;
 	}
 };
-
 
 /** TickingTimer struct */
 struct SENSESYSTEM_API FTickingTimer

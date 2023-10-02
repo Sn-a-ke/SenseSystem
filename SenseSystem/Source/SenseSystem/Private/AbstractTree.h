@@ -2,23 +2,21 @@
 
 #pragma once
 
-#include <type_traits>
-
 #include "HAL/Platform.h"
-#include "Misc/AssertionMacros.h"
-#include "Templates/UnrealTemplate.h"
-#include "Templates/Function.h"
-#include "Templates/TypeHash.h"
 #include "Math/NumericLimits.h"
 #include "Math/UnrealMathUtility.h"
-#include "Math/Vector2D.h"
 #include "Math/Vector.h"
+#include "Math/Vector2D.h"
+#include "Misc/AssertionMacros.h"
+#include "Templates/Function.h"
+#include "Templates/TypeHash.h"
+#include "Templates/UnrealTemplate.h"
 
 #include "Containers/Array.h"
+#include "Containers/ContainerAllocationPolicies.h"
 #include "Containers/SparseArray.h"
 #include "Containers/StaticArray.h"
 #include "Containers/UnrealString.h"
-#include "Containers/ContainerAllocationPolicies.h"
 
 #include "DrawDebugHelpers.h"
 
@@ -93,22 +91,38 @@ struct TTreeBox
 {
 	using Real = typename PointType::FReal;
 
-	TTreeBox() : Min(0), Max(0), Center(0) {}
-	explicit TTreeBox(Real HalfSize) : Min(PointType(-HalfSize, -HalfSize)), Max(PointType(HalfSize, HalfSize)), Center((Max + Min) * 0.5f) {}
-	explicit TTreeBox(PointType Point) : Min(Point), Max(Point), Center(Point) {}
-	TTreeBox(PointType InMin, PointType InMax) : Min(InMin), Max(InMax), Center((InMax + InMin) * 0.5f) {}
-	TTreeBox(PointType Location, Real MinimumQuadSize)
+	TTreeBox()
+		: Min(0) //
+		, Max(0)
+		, Center(0)
+	{}
+	explicit TTreeBox(Real HalfSize)
+		: Min(PointType(-HalfSize, -HalfSize)) //
+		, Max(PointType(HalfSize, HalfSize))
+		, Center((Max + Min) * 0.5)
+	{}
+	explicit TTreeBox(PointType Point)
+		: Min(Point) //
+		, Max(Point)
+		, Center(Point)
+	{}
+	TTreeBox(PointType InMin, PointType InMax)
+		: Min(InMin) //
+		, Max(InMax)
+		, Center((InMax + InMin) * 0.5)
+	{}
+	TTreeBox(const PointType& Location, Real MinimumQuadSize)
 	{
 		const Real* RESTRICT L = reinterpret_cast<const Real*>(&Location);
 		Real* RESTRICT Mi = reinterpret_cast<Real*>(&Min);
 		Real* RESTRICT Ma = reinterpret_cast<Real*>(&Max);
-
+		Real* RESTRICT Ce = reinterpret_cast<Real*>(&Center);
 		MinimumQuadSize = FMath::Abs(MinimumQuadSize);
 		for (int32 i = 0; i < DimensionSize; ++i)
 		{
 			const Real Value = L[i] / MinimumQuadSize;
 			int32 Li = FMath::CeilToInt(Value);
-			Li += int32(Li == FMath::FloorToInt(Value));
+			Li += static_cast<int32>(Li == FMath::FloorToInt(Value));
 			Mi[i] = (Li - 1) * MinimumQuadSize;
 			if (Mi[i] >= L[i]) // unreliable CeilToInt
 			{
@@ -119,8 +133,8 @@ struct TTreeBox
 			{
 				Ma[i] = Li * MinimumQuadSize;
 			}
+			Ce[i] = (Mi[i] + Ma[i]) * 0.5;
 		}
-		Center = (Min + Max) * 0.5f;
 #if WITH_EDITOR
 		checkf(
 			IsInside(Location),
@@ -137,9 +151,14 @@ struct TTreeBox
 #endif
 	}
 
-	static FORCEINLINE TTreeBox<PointType, DimensionSize> BuildAABB(PointType Origin, PointType Extent)
+	template<typename OtherBoxType>
+	TTreeBox(OtherBoxType OtherBox) //
+		: TTreeBox(OtherBox.Min, OtherBox.Max)
+	{}
+
+	static FORCEINLINE TTreeBox BuildAABB(PointType Origin, PointType Extent) //
 	{
-		return TTreeBox<PointType, DimensionSize>(Origin - Extent, Origin + Extent);
+		return TTreeBox(Origin - Extent, Origin + Extent);
 	}
 
 	PointType Min;
@@ -165,8 +184,8 @@ private:
 #endif
 
 public:
-	FORCEINLINE const PointType& GetCenter() const { return /*(Min + Max) * 0.5f*/ Center; }
-	FORCEINLINE PointType GetCenter() { return /*(Min + Max) * 0.5f*/ Center; }
+	FORCEINLINE const PointType& GetCenter() const { return /*(Min + Max) * 0.5*/ Center; }
+	FORCEINLINE PointType GetCenter() { return /*(Min + Max) * 0.5*/ Center; }
 	FORCEINLINE PointType GetSize() const { return (Max - Min); }
 	FORCEINLINE PointType GetExtent() const { return 0.5f * GetSize(); }
 
@@ -185,7 +204,7 @@ public:
 		return true;
 	}
 
-	FORCEINLINE bool IsInside(const TTreeBox<PointType, DimensionSize>& Box) const { return (IsInside(Box.Min) && IsInside(Box.Max)); }
+	FORCEINLINE bool IsInside(const TTreeBox& Box) const { return (IsInside(Box.Min) && IsInside(Box.Max)); }
 	FORCEINLINE bool IsIntersect(const PointType& BoxMin, const PointType& BoxMax) const
 	{
 		const Real* RESTRICT MiB = reinterpret_cast<const Real*>(&BoxMin);
@@ -201,10 +220,10 @@ public:
 		}
 		return true;
 	}
-	FORCEINLINE bool IsIntersect(const TTreeBox<PointType, DimensionSize>& Box) const { return IsIntersect(Box.Min, Box.Max); }
+	FORCEINLINE bool IsIntersect(const TTreeBox& Box) const { return IsIntersect(Box.Min, Box.Max); }
 
-	FORCEINLINE bool operator==(const TTreeBox<PointType, DimensionSize>& Box) const { return Min == Box.Min && Max == Box.Max; }
-	FORCEINLINE bool operator!=(const TTreeBox<PointType, DimensionSize>& Box) const { return !(*this == Box); }
+	FORCEINLINE bool operator==(const TTreeBox& Box) const { return Min == Box.Min && Max == Box.Max; }
+	FORCEINLINE bool operator!=(const TTreeBox& Box) const { return !(*this == Box); }
 	friend FArchive& operator<<(FArchive& Ar, TTreeBox& In)
 	{
 		Ar << In.Min;
@@ -221,14 +240,14 @@ public:
 		const Real* RESTRICT Mi = reinterpret_cast<const Real*>(&Min);
 		const Real* RESTRICT Ma = reinterpret_cast<const Real*>(&Max);
 
-		Real DistSquared = 0.f;
+		Real DistSquared = 0.0;
 		for (int32 i = 0; i < DimensionSize; ++i)
 		{
-			if (C[i] < Min[i])
+			if (C[i] < Mi[i])
 			{
 				DistSquared += FMath::Square(C[i] - Mi[i]);
 			}
-			else if (C[i] > Max.X)
+			else if (C[i] > Ma[i])
 			{
 				DistSquared += FMath::Square(C[i] - Ma[i]);
 			}
@@ -237,14 +256,12 @@ public:
 	}
 
 	// ue4 Box
-
 	FORCEINLINE operator FBox2D() const
 	{
 		IF_CONSTEXPR(DimensionSize == 2U)
 		{
 			return FBox2D(Min, Max);
 		}
-
 		IF_CONSTEXPR(DimensionSize != 2U)
 		{
 			static_assert(DimensionSize > 1, "DimensionSize <= 1");
@@ -266,11 +283,6 @@ public:
 		checkNoEntry();
 		UE_ASSUME(0);
 	}
-
-	template<typename OtherBoxType>
-	TTreeBox(OtherBoxType OtherBox) : TTreeBox<PointType, DimensionSize>(OtherBox.Min, OtherBox.Max)
-	{}
-
 	//end  ue4 Box
 };
 
@@ -286,14 +298,13 @@ class TTreeNode
 {
 public:
 	static constexpr IndexQtType MaxIndexQt = TNumericLimits<IndexQtType>::Max();
-	static constexpr int32 SubNodesNum = static_cast<int32>(TreeHelper::Pow2<DimensionSize>());
+	static constexpr int32 SubNodesNum = TreeHelper::Pow2<DimensionSize>();
 
 	static_assert(SubNodesNum > 0, "Error TTreeNode SubNodesNum == 0 !");
 	static_assert(DimensionSize > 1U && DimensionSize < 4U, "TTreeNode: DimensionSize error");
 
 	using Real = typename PointType::FReal;
 	using ElementNodeType = TreeElementIdxType;
-	using TreeNodeType = TTreeNode<TreeElementIdxType, IndexQtType, PointType, DimensionSize, InlineNodeNum>;
 	using BoxType = TTreeBox<PointType, DimensionSize>;
 
 	TTreeNode() : SubNodes(TStaticArray<IndexQtType, SubNodesNum>(InPlace, MaxIndexQt)), TreeBox(0) {}
@@ -308,10 +319,10 @@ public:
 		, TreeBox(MoveTemp(Box))
 	{}
 
-	FORCEINLINE bool operator==(const TreeNodeType& Other) const { return Self_ID == Other.Self_ID; }
-	FORCEINLINE friend uint32 GetTypeHash(const TreeNodeType& In) { return GetTypeHash(In.Self_ID); }
+	FORCEINLINE bool operator==(const TTreeNode& Other) const { return Self_ID == Other.Self_ID; }
+	FORCEINLINE friend uint32 GetTypeHash(const TTreeNode& In) { return GetTypeHash(In.Self_ID); }
 
-	TreeNodeType& operator=(const TreeNodeType& Other)
+	TTreeNode& operator=(const TTreeNode& Other)
 	{
 		SubNodes = Other.SubNodes;
 		Self_ID = Other.Self_ID;
@@ -332,7 +343,7 @@ public:
 
 
 	FORCEINLINE bool IsLeaf() const { return SubNodes[0] == MaxIndexQt; }
-	FORCEINLINE int32 Num() const { return static_cast<int32>(ContainsCount); }
+	FORCEINLINE int32 Num() const { return ContainsCount; }
 
 	FORCEINLINE const BoxType& GetTreeBox() const { return TreeBox; }
 	FORCEINLINE BoxType& GetTreeBox() { return TreeBox; }
@@ -406,7 +417,6 @@ public:
 		*/
 
 		const auto BoxCenter = GetTreeBox().GetCenter();
-
 		const Real* RESTRICT Mi = reinterpret_cast<const Real*>(&InBox.Min);
 		const Real* RESTRICT Ma = reinterpret_cast<const Real*>(&InBox.Max);
 
@@ -421,7 +431,7 @@ public:
 					? Mi[j]
 					: Ma[j];
 			}
-			QuadNames |= GetIDByPos_Inv(BoxCenter, V);
+			QuadNames |= GetIDByPos(BoxCenter, V);
 		}
 
 		return QuadNames;
@@ -436,30 +446,12 @@ public:
 		for (int32 i = DimensionSize - 1; i >= 0; --i)
 		{
 			BitIdx = BitIdx << 1;
-			if (d[i] < 0.f)
+			if (d[i] < 0.0)
 			{
 				BitIdx |= 1;
 			}
 		}
-
 		return static_cast<uint8>(1U) << BitIdx;
-	}
-
-private:
-	static uint8 GetIDByPos_Inv(const PointType& Center, const PointType& Pos)
-	{
-		uint8 P = 0;
-		const auto Delta = Pos - Center;
-		const Real* RESTRICT d = reinterpret_cast<const Real*>(&Delta);
-		for (int32 i = DimensionSize - 1; i >= 0; --i)
-		{
-			P = P << 1;
-			if (d[i] <= 0.f)
-			{
-				P |= 1;
-			}
-		}
-		return static_cast<uint8>(1U) << P;
 	}
 };
 
@@ -473,10 +465,14 @@ template<
 class TTree_Base
 {
 public:
-	static constexpr uint32 InlineAllocatorSize =														  //
-		(DimensionSize == 2U)																			  //
-		? (std::is_same<IndexQtType, uint32>::value ? 28U : (std::is_same<IndexQtType, uint16>::value ? 36U : 0U))	//
-		: (std::is_same<IndexQtType, uint32>::value ? 10U : (std::is_same<IndexQtType, uint16>::value ? 24U : 0U)); //
+	static constexpr uint32 InlineAllocatorSize = //
+		(DimensionSize == 2U)					  //
+		? (std::is_same_v<IndexQtType, uint32>	  //
+			   ? 28U
+			   : (std::is_same_v<IndexQtType, uint16> ? 36U : 0U)) //
+		: (std::is_same_v<IndexQtType, uint32>					   //
+			   ? 10U
+			   : (std::is_same_v<IndexQtType, uint16> ? 24U : 0U));
 
 	using TreeElementIdxType = uint16;
 	using TreeNodeType = TTreeNode<TreeElementIdxType, IndexQtType, PointType, DimensionSize, InlineAllocatorSize>;
@@ -496,13 +492,13 @@ private:
 		IndexQtType TreeID;
 	};
 
-	static constexpr bool bElementVector = std::is_same<ElementType, PointType>::value;
+	static constexpr bool bElementVector = std::is_same_v<ElementType, PointType>;
 	using VectorOrBox = typename TChooseClass<bElementVector, PointType, BoxType>::Result;
 	using TreeData = typename TChooseClass<bElementVector, IndexQtType, TreeIdxBox>::Result;
 
 
 public:
-	explicit TTree_Base<ElementType, PointType, IndexQtType, DimensionSize>(
+	explicit TTree_Base(
 		const Real InMinimumQuadSize = 100.f,
 		const int32 InNodeCantSplit = SubNodesNum,
 		const int32 TreePoolSize = 256,
@@ -551,46 +547,46 @@ public:
 	FORCEINLINE ElementType& GetElement(const TreeElementIdxType ObjID) { return GetElementPool()[static_cast<int32>(ObjID)]; }
 
 	template<typename T = ElementType>
-	FORCEINLINE typename TEnableIf<std::is_same<T, PointType>::value, const PointType&>::Type GetElementBox(const TreeElementIdxType ObjID) const
+	FORCEINLINE std::enable_if_t<std::is_same_v<T, PointType>, const PointType&> GetElementBox(const TreeElementIdxType ObjID) const
 	{
 		return GetElement(ObjID);
 	}
 	template<typename T = ElementType>
-	FORCEINLINE typename TEnableIf<std::is_same<T, PointType>::value, PointType&>::Type GetElementBox(const TreeElementIdxType ObjID)
+	FORCEINLINE std::enable_if_t<std::is_same_v<T, PointType>, PointType&> GetElementBox(const TreeElementIdxType ObjID)
 	{
 		return GetElement(ObjID);
 	}
 
 	template<typename T = ElementType>
-	FORCEINLINE typename TEnableIf<std::is_same<T, PointType>::value, IndexQtType>::Type GetElementTreeID(const TreeElementIdxType ObjID) const
+	FORCEINLINE std::enable_if_t<std::is_same_v<T, PointType>, IndexQtType> GetElementTreeID(const TreeElementIdxType ObjID) const
 	{
 		return Data[static_cast<int32>(ObjID)];
 	}
 	template<typename T = ElementType>
-	FORCEINLINE typename TEnableIf<std::is_same<T, PointType>::value, IndexQtType&>::Type GetElementTreeID(const TreeElementIdxType ObjID)
+	FORCEINLINE std::enable_if_t<std::is_same_v<T, PointType>, IndexQtType&> GetElementTreeID(const TreeElementIdxType ObjID)
 	{
 		return Data[static_cast<int32>(ObjID)];
 	}
 
 
 	template<typename T = ElementType>
-	FORCEINLINE typename TEnableIf<!std::is_same<T, PointType>::value, const BoxType&>::Type GetElementBox(const TreeElementIdxType ObjID) const
+	FORCEINLINE std::enable_if_t<!std::is_same_v<T, PointType>, const BoxType&> GetElementBox(const TreeElementIdxType ObjID) const
 	{
 		return Data[static_cast<int32>(ObjID)].Box;
 	}
 	template<typename T = ElementType>
-	FORCEINLINE typename TEnableIf<!std::is_same<T, PointType>::value, BoxType&>::Type GetElementBox(const TreeElementIdxType ObjID)
+	FORCEINLINE std::enable_if_t<!std::is_same_v<T, PointType>, BoxType&> GetElementBox(const TreeElementIdxType ObjID)
 	{
 		return Data[static_cast<int32>(ObjID)].Box;
 	}
 
 	template<typename T = ElementType>
-	FORCEINLINE typename TEnableIf<!std::is_same<T, PointType>::value, IndexQtType>::Type GetElementTreeID(const TreeElementIdxType ObjID) const
+	FORCEINLINE std::enable_if_t<!std::is_same_v<T, PointType>, IndexQtType> GetElementTreeID(const TreeElementIdxType ObjID) const
 	{
 		return Data[static_cast<int32>(ObjID)].TreeID;
 	}
 	template<typename T = ElementType>
-	FORCEINLINE typename TEnableIf<!std::is_same<T, PointType>::value, IndexQtType&>::Type GetElementTreeID(const TreeElementIdxType ObjID)
+	FORCEINLINE std::enable_if_t<!std::is_same_v<T, PointType>, IndexQtType&> GetElementTreeID(const TreeElementIdxType ObjID)
 	{
 		return Data[static_cast<int32>(ObjID)].TreeID;
 	}
@@ -598,18 +594,18 @@ public:
 
 private:
 	template<typename T = ElementType>
-	FORCEINLINE typename TEnableIf<std::is_same<T, PointType>::value, void>::Type InsertNewData(const TreeElementIdxType ObjID, const PointType&)
+	FORCEINLINE std::enable_if_t<std::is_same_v<T, PointType>, void> InsertNewData(const TreeElementIdxType ObjID, const PointType&)
 	{
 		Data.Insert(static_cast<int32>(ObjID), MaxIndexQt);
 	}
 	template<typename T = ElementType>
-	FORCEINLINE typename TEnableIf<!std::is_same<T, PointType>::value, void>::Type InsertNewData(const TreeElementIdxType ObjID, const BoxType& InBox)
+	FORCEINLINE std::enable_if_t<!std::is_same_v<T, PointType>, void> InsertNewData(const TreeElementIdxType ObjID, const BoxType& InBox)
 	{
 		Data.Insert(static_cast<int32>(ObjID), TreeData(MaxIndexQt, InBox));
 	}
 
 	template<typename T = ElementType>
-	FORCEINLINE typename TEnableIf<std::is_same<T, PointType>::value, TreeElementIdxType>::Type Insert(const PointType& Element)
+	FORCEINLINE std::enable_if_t<std::is_same_v<T, PointType>, TreeElementIdxType> Insert(const PointType& Element)
 	{
 		const int32 Idx = this->Insert(Element, Element);
 		return static_cast<TreeElementIdxType>(Idx);
@@ -648,7 +644,7 @@ public:
 	TreeElementIdxType Insert(const ElementType& Element, VectorOrBox InBox)
 	{
 		const int32 ResIdx = ElementPool.Add(Element);
-		const TreeElementIdxType ObjID = static_cast<TreeElementIdxType>(ResIdx);
+		const TreeElementIdxType ObjID = ResIdx;
 		InsertNewData(ObjID, InBox);
 
 		checkSlow(GetElement(ObjID) == Element);
@@ -686,7 +682,7 @@ public:
 	TreeElementIdxType Insert(ElementType&& Element, VectorOrBox InBox)
 	{
 		const int32 ResIdx = ElementPool.Add(MoveTemp(Element));
-		const TreeElementIdxType ObjID = static_cast<TreeElementIdxType>(ResIdx);
+		const TreeElementIdxType ObjID = ResIdx;
 		InsertNewData(ObjID, InBox);
 
 		if (!IsValidRoot())
@@ -966,7 +962,7 @@ public:
 	// clang-format off
 	
 	template<uint32 Dim = DimensionSize>
-	typename TEnableIf<Dim == 2, void>::Type DrawTree(
+	std::enable_if_t<Dim == 2, void> DrawTree(
 		const UWorld* World,
 		const float LifeTime,
 		const FColor Color_1, const float Thickness_1, const uint8 DepthPriority_1,
@@ -987,7 +983,7 @@ public:
 	}
 
 	template<uint32 Dim = DimensionSize>
-	typename TEnableIf<Dim == 3, void>::Type DrawTree(
+	std::enable_if_t<Dim == 3, void> DrawTree(
 		const UWorld* World,
 		const float LifeTime,
 		const FColor Color_1, const float Thickness_1, const uint8 DepthPriority_1,
@@ -1735,12 +1731,12 @@ private:
 
 
 	template<typename T = ElementType>
-	FORCEINLINE typename TEnableIf<std::is_same<T, PointType>::value, FVector>::Type GetExtentFrom(const PointType& P) const
+	FORCEINLINE std::enable_if_t<std::is_same_v<T, PointType>, FVector> GetExtentFrom(const PointType& P) const
 	{
 		return FVector(0.f);
 	}
 	template<typename T = ElementType>
-	FORCEINLINE typename TEnableIf<!std::is_same<T, PointType>::value, FVector>::Type GetExtentFrom(const BoxType& P) const
+	FORCEINLINE std::enable_if_t<!std::is_same_v<T, PointType>, FVector> GetExtentFrom(const BoxType& P) const
 	{
 		return P.GetExtent();
 	}
@@ -1748,7 +1744,7 @@ private:
 	// clang-format off
 	
 	template<uint32 Dim = DimensionSize>
-	typename TEnableIf<Dim == 2, void>::Type DrawTree_Recursive(
+	std::enable_if_t<Dim == 2, void> DrawTree_Recursive(
 		const IndexQtType Self_ID,
 		const UWorld* World,
 		const float DrawHeight,
@@ -1824,7 +1820,7 @@ private:
 	}
 
 	template<uint32 Dim = DimensionSize>
-	typename TEnableIf<Dim == 3, void>::Type DrawTree_Recursive(
+	std::enable_if_t<Dim == 3, void> DrawTree_Recursive(
 		const IndexQtType Self_ID,
 		const UWorld* World,
 		const float LifeTime,

@@ -811,13 +811,13 @@ void USenseReceiverComponent::PostEditChangeProperty(struct FPropertyChangedEven
 	}
 }
 
-EDataValidationResult USenseReceiverComponent::IsDataValid(TArray<FText>& ValidationErrors)
+EDataValidationResult USenseReceiverComponent::IsDataValid(FDataValidationContext& ValidationErrors)
 {
 	EDataValidationResult IsValid = Super::IsDataValid(ValidationErrors);
 	for (uint8 i = 1; i < 4; i++)
 	{
 		const auto& SensorsArr = GetSensorsByType(static_cast<ESensorType>(i));
-		for (USensorBase* const It : SensorsArr)
+		for (USensorBase* It : SensorsArr)
 		{
 			if (It)
 			{
@@ -1219,7 +1219,7 @@ bool USenseReceiverComponent::CheckSensorTestToDefaults(TArray<FSenseSysRestoreO
 void USenseReceiverComponent::RestoreSensorTestDefaults(TArray<FSenseSysRestoreObject>& Rest)
 {
 	const EObjectFlags Flags = GetMaskedFlags(RF_PropagateToSubObjects);
-	for (auto& It : Rest)
+	for (const auto& It : Rest)
 	{
 		UObject* Obj = NewObject<UObject>(this, It.Class, It.ObjectName, Flags, It.DefaultObject);
 		TArray<USensorBase*>& SensorsArr = GetSensorsByType(It.SensorType);

@@ -438,7 +438,7 @@ bool USenseStimulusBase::IsResponseTag(const FName& Tag) const
 	{
 		if (const FStimulusTagResponse* StrPtr = GetStimulusTagResponse(Tag))
 		{
-			return (*StrPtr).BitChannels.Value != 0;
+			return StrPtr->BitChannels.Value != 0;
 		}
 	}
 	return false;
@@ -595,13 +595,13 @@ void USenseStimulusBase::ReportSenseEvent(const FName Tag)
 	{
 		if (const FStimulusTagResponse* StrPtr = GetStimulusTagResponse(Tag))
 		{
-			const uint16 StimulusID = (*StrPtr).GetObjID();
+			const uint16 StimulusID = StrPtr->GetObjID();
 			if (StimulusID != MAX_uint16)
 			{
 				const auto& Delegate = GetSenseManager()->ReportStimulus_Event;
 				if (Delegate.IsBound())
 				{
-					Delegate.Broadcast((*StrPtr).GetObjID(), Tag);
+					Delegate.Broadcast(StimulusID, Tag);
 				}
 			}
 		}
@@ -996,7 +996,7 @@ void USenseStimulusBase::PostEditChangeProperty(struct FPropertyChangedEvent& e)
 	Super::PostEditChangeProperty(e);
 }
 
-EDataValidationResult USenseStimulusBase::IsDataValid(TArray<FText>& ValidationErrors)
+EDataValidationResult USenseStimulusBase::IsDataValid(FDataValidationContext& ValidationErrors) const
 {
 	const EDataValidationResult IsValid = Super::IsDataValid(ValidationErrors);
 	return IsValid;
@@ -1105,7 +1105,7 @@ void USenseStimulusBase::DrawComponent(const FSceneView* View, FPrimitiveDrawInt
 
 					struct FDrawDT
 					{
-						FDrawDT(const float InAge, const FVector InLoc, const FVector InALoc) : Age(InAge), Loc(InLoc), ALoc(InALoc) {}
+						FDrawDT(const float InAge, const FVector& InLoc, const FVector& InALoc) : Age(InAge), Loc(InLoc), ALoc(InALoc) {}
 						float Age;
 						FVector Loc;
 						FVector ALoc;
@@ -1207,7 +1207,7 @@ void USenseStimulusBase::DrawComponentHUD(const FViewport* Viewport, const FScen
 		{
 			struct FDrawDT
 			{
-				FDrawDT(const float InAgeValue, const FVector InLoc) : AgeValue(InAgeValue), Loc(InLoc) {}
+				FDrawDT(const float InAgeValue, const FVector& InLoc) : AgeValue(InAgeValue), Loc(InLoc) {}
 				float AgeValue;
 				FVector Loc;
 			};

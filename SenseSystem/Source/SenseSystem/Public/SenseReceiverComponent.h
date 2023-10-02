@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "UObject/ObjectMacros.h"
-#include "UObject/NoExportTypes.h"
 #include "UObject/UObjectBaseUtility.h"
 #include "Components/SceneComponent.h"
 
@@ -61,7 +60,7 @@ protected:
 public:
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& e) override;
-	virtual EDataValidationResult IsDataValid(TArray<FText>& ValidationErrors) override;
+	virtual EDataValidationResult IsDataValid(FDataValidationContext& ValidationErrors) override;
 
 	bool CheckSensorTestToDefaults(TArray<FSenseSysRestoreObject>& Rest, ESensorType InSensor_Type = ESensorType::None);
 	void RestoreSensorTestDefaults(TArray<FSenseSysRestoreObject>& Rest);

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "UObject/Object.h"
 #include "Components/ActorComponent.h"
 #include "UObject/ObjectMacros.h"
 #include "GameFramework/Actor.h"
@@ -33,7 +34,7 @@ enum class EStimulusMobility : uint8
 	MovableOwner UMETA(DisplayName = "MovableOwner"),
 	MovableTick  UMETA(DisplayName = "MovableTick")
 
-	//todo animated sense points from animinstance
+	//todo animated sense points from anim-instance
 };
 
 
@@ -113,7 +114,7 @@ public:
 	{
 		return BitChannels.Value & (1llu << (InChannel - 1));
 	}
-	FORCEINLINE bool IsResponseChannel(const FBitFlag64_SenseSys InChannels) const
+	FORCEINLINE bool IsResponseChannel(const FBitFlag64_SenseSys& InChannels) const
 	{
 		return BitChannels.Value & InChannels;
 	}
@@ -137,9 +138,9 @@ public:
 
 private:
 	void AddSensed(AActor* Actor, uint8 InChannel);
-	bool RemoveSensed(AActor* Actor, uint8 InChannel);
+	bool RemoveSensed(const AActor* Actor, uint8 InChannel);
 	void AddLost(AActor* Actor, uint8 InChannel);
-	bool RemoveLost(AActor* Actor, uint8 InChannel);
+	bool RemoveLost(const AActor* Actor, uint8 InChannel);
 };
 
 
@@ -205,7 +206,7 @@ public:
 #if WITH_EDITOR
 
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& e) override;
-	virtual EDataValidationResult IsDataValid(TArray<FText>& ValidationErrors) override;
+	virtual EDataValidationResult IsDataValid(class FDataValidationContext& ValidationErrors) const override;
 
 #endif
 
@@ -265,6 +266,8 @@ public:
 	UPROPERTY(EditAnywhere, /*EditDefaultsOnly,*/ BlueprintReadOnly, Category = "SenseStimulus" /*, meta = (NoElementDuplicate)*/)
 	TMap<FName, FStimulusTagResponse> TagResponse = {TPair<FName, FStimulusTagResponse>(NAME_None, FStimulusTagResponse())};
 
+	//UPROPERTY(EditAnywhere, /*EditDefaultsOnly,*/ BlueprintReadOnly, Category = "SenseStimulus" /*, meta = (NoElementDuplicate)*/)
+	//TSet<UObject*> StimulusMeta; //todo life time
 
 	/** Public StimulusSensorNameResponse Getter */
 	UFUNCTION(BlueprintCallable, Category = "SenseSystem|SenseStimulus", meta = (Keywords = "Get Stimulus Sensor Tag Sensor Tag Name Response"))
@@ -457,11 +460,11 @@ FORCEINLINE void USenseStimulusBase::SetAge(const FName SensorTag, const float A
 	{
 		if (IsRegisteredForSense())
 		{
-			(*StrPtr).SetAge(AgeValue);
+			StrPtr->SetAge(AgeValue);
 		}
 		else
 		{
-			(*StrPtr).Age = AgeValue;
+			StrPtr->Age = AgeValue;
 		}
 	}
 }
@@ -471,11 +474,11 @@ FORCEINLINE void USenseStimulusBase::SetScore(const FName SensorTag, const float
 	{
 		if (IsRegisteredForSense())
 		{
-			(*StrPtr).SetScore(ScoreValue);
+			StrPtr->SetScore(ScoreValue);
 		}
 		else
 		{
-			(*StrPtr).Score = ScoreValue;
+			StrPtr->Score = ScoreValue;
 		}
 	}
 }
@@ -483,7 +486,7 @@ FORCEINLINE float USenseStimulusBase::GetAge(const FName SensorTag) const
 {
 	if (const FStimulusTagResponse* StrPtr = GetStimulusTagResponse(SensorTag))
 	{
-		return (*StrPtr).GetAge();
+		return StrPtr->GetAge();
 	}
 	return 0.f;
 }
@@ -491,7 +494,7 @@ FORCEINLINE float USenseStimulusBase::GetScore(const FName SensorTag) const
 {
 	if (const FStimulusTagResponse* StrPtr = GetStimulusTagResponse(SensorTag))
 	{
-		return (*StrPtr).GetScore();
+		return StrPtr->GetScore();
 	}
 	return 0.f;
 }
@@ -532,7 +535,7 @@ FORCEINLINE void FStimulusTagResponse::AddSensed(AActor* Actor, const uint8 InCh
 		Val |= (1llu << InChannel);
 	}
 }
-FORCEINLINE bool FStimulusTagResponse::RemoveSensed(AActor* Actor, const uint8 InChannel)
+FORCEINLINE bool FStimulusTagResponse::RemoveSensed(const AActor* Actor, const uint8 InChannel)
 {
 	if (Actor && InChannel < 64)
 	{
@@ -558,7 +561,7 @@ FORCEINLINE void FStimulusTagResponse::AddLost(AActor* Actor, const uint8 InChan
 		Val |= (1llu << InChannel);
 	}
 }
-FORCEINLINE bool FStimulusTagResponse::RemoveLost(AActor* Actor, const uint8 InChannel)
+FORCEINLINE bool FStimulusTagResponse::RemoveLost(const AActor* Actor, const uint8 InChannel)
 {
 	if (Actor && InChannel < 64)
 	{

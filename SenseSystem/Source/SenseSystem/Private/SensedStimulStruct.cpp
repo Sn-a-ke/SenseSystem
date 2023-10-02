@@ -4,7 +4,12 @@
 #include "SenseStimulusBase.h"
 
 FBox FSensedStimulus::Init(
-	const FName& SensorTag, USenseStimulusBase* Component, const float InScore, const float InAge, const float CurrentTime, const uint64 InBitChannels)
+	const FName& SensorTag, //
+	USenseStimulusBase* Component,
+	const float InScore,
+	const float InAge,
+	const float CurrentTime,
+	const uint64 InBitChannels)
 {
 	if (IsValid(Component))
 	{

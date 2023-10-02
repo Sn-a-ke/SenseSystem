@@ -207,7 +207,7 @@ FORCEINLINE void FSenseDetectPool::EmptyArr(TArray<uint16>&& A)
 {
 	if (A.Num())
 	{
-		for (auto i : A)
+		for (const auto i : A)
 		{
 			ObjPool.RemoveAt(i);
 		}

@@ -59,11 +59,11 @@ enum class ESensorState : uint8
 class FSensorState : private FThreadSafeCounter
 {
 public:
-	FSensorState() : FThreadSafeCounter() {}
+	FSensorState() {}
 	explicit FSensorState(ESensorState InSensorState) : FThreadSafeCounter(static_cast<int32>(InSensorState)) {}
 
 	FORCEINLINE ESensorState Set(ESensorState InSensorState) { return static_cast<ESensorState>(FThreadSafeCounter::Set(static_cast<int32>(InSensorState))); }
-	FORCEINLINE ESensorState Get() const { return static_cast<ESensorState>(FThreadSafeCounter::GetValue()); }
+	FORCEINLINE ESensorState Get() const { return static_cast<ESensorState>(GetValue()); }
 
 	FORCEINLINE void operator=(const ESensorState InSensorState) { Set(InSensorState); }
 	FORCEINLINE operator ESensorState() const { return Get(); }
@@ -175,17 +175,17 @@ private:
 		FDeleterSdp& operator=(const FDeleterSdp&) = default;
 		void operator()(class FSenseDetectPool* Ptr) const;
 
-		template<typename U, typename = typename TEnableIf<TPointerIsConvertibleFromTo<U, class FSenseDetectPool>::Value>::Type>
+		template<typename U, typename = std::enable_if_t<TPointerIsConvertibleFromTo<U, FSenseDetectPool>::Value>>
 		FDeleterSdp(const TDefaultDelete<U>&)
 		{}
-		template<typename U, typename = typename TEnableIf<TPointerIsConvertibleFromTo<U, class FSenseDetectPool>::Value>::Type>
+		template<typename U, typename = std::enable_if_t<TPointerIsConvertibleFromTo<U, FSenseDetectPool>::Value>>
 		FDeleterSdp& operator=(const TDefaultDelete<U>&)
 		{
 			return *this;
 		}
 	};
 
-	TUniquePtr<class FSenseDetectPool, FDeleterSdp> _SenseDetect = nullptr;
+	TUniquePtr<FSenseDetectPool, FDeleterSdp> _SenseDetect = nullptr;
 
 	void OnSensorChannelUpdated(ESensorType InSensorType);
 	void OnSensorAgeUpdated(ESensorType InSensorType, EUpdateReady UpdateReady);
@@ -269,7 +269,7 @@ public:
 	//virtual bool CanEditChange(const UProperty* InProperty) const override;
 	//	UFUNCTION()void OnPreCompile(class UBlueprint* BlueprintToCompile);
 
-	virtual EDataValidationResult IsDataValid(TArray<FText>& ValidationErrors) override;
+	virtual EDataValidationResult IsDataValid(FDataValidationContext& ValidationErrors) override;
 
 	static uint8 GetUniqueChannel(const TArray<uint8>& Tmp, uint8 Start = 0);
 
@@ -595,9 +595,9 @@ public:
 	TArray<FSensedStimulus> GetSensedStimulusBySenseEvent_BP(ESensorArrayByType SenseEvent, uint8 Channel);
 
 
-	int32 FindInSortedArray(const TArray<FSensedStimulus>& Array, const FSensedStimulus& SensedStimulus) const;
-	int32 FindInSortedArray(const TArray<FSensedStimulus>& Array, const USenseStimulusBase* SensedStimulus) const;
-	int32 FindInSortedArray(const TArray<FSensedStimulus>& Array, const AActor* Actor) const;
+	static int32 FindInSortedArray(const TArray<FSensedStimulus>& Array, const FSensedStimulus& SensedStimulus);
+	static int32 FindInSortedArray(const TArray<FSensedStimulus>& Array, const USenseStimulusBase* SensedStimulus);
+	static int32 FindInSortedArray(const TArray<FSensedStimulus>& Array, const AActor* Actor);
 
 	/** Fast binary search actor in array_by_SenseState */
 	UFUNCTION(BlueprintCallable, BlueprintPure = false, Category = "SenseSystem|Sensor", meta = (Keywords = "Find Contains Actor"))
