@@ -152,9 +152,20 @@ struct TTreeBox
 	}
 
 	template<typename OtherBoxType>
-	TTreeBox(OtherBoxType OtherBox) //
-		: TTreeBox(OtherBox.Min, OtherBox.Max)
-	{}
+	TTreeBox(const OtherBoxType& OtherBox)
+	{
+		IF_CONSTEXPR(std::is_same_v<OtherBoxType, PointType>)
+		{
+			Min = OtherBox;
+			Max = OtherBox;
+		}
+		IF_CONSTEXPR(!std::is_same_v<OtherBoxType, PointType>)
+		{
+			Min = OtherBox.Min;
+			Max = OtherBox.Max;
+		}
+		Center = (Max + Min) * 0.5;
+	}
 
 	static FORCEINLINE TTreeBox BuildAABB(PointType Origin, PointType Extent) //
 	{
@@ -512,8 +523,9 @@ public:
 		ElementPool.Reserve(CompPoolSize);
 		Data.Reserve(CompPoolSize);
 	}
+	TTree_Base(TTree_Base&& Other) = default;
+	TTree_Base(const TTree_Base& Other) = default;
 
-protected:
 	IndexQtType Root = MaxIndexQt;
 	const Real MinimumQuadSize;
 	const Real SplitTolerance;
@@ -522,6 +534,23 @@ protected:
 	TSparseArray<TreeNodeType> Pool;
 	TSparseArray<TreeData> Data;
 	TSparseArray<ElementType> ElementPool;
+
+	TTree_Base& operator=(const TTree_Base& Other)
+	{
+		Root = Other.Root;
+		Pool = Other.Pool;
+		Data = Other.Data;
+		ElementPool = Other.ElementPool;
+		return *this;
+	}
+	TTree_Base& operator=(TTree_Base&& Other)
+	{
+		Root = MoveTemp(Other.Root);
+		Pool = MoveTemp(Other.Pool);
+		Data = MoveTemp(Other.Data);
+		ElementPool = MoveTemp(Other.ElementPool);
+		return *this;
+	}
 
 public:
 	// tree
@@ -604,6 +633,7 @@ private:
 		Data.Insert(static_cast<int32>(ObjID), TreeData(MaxIndexQt, InBox));
 	}
 
+public:
 	template<typename T = ElementType>
 	FORCEINLINE std::enable_if_t<std::is_same_v<T, PointType>, TreeElementIdxType> Insert(const PointType& Element)
 	{
@@ -611,7 +641,7 @@ private:
 		return static_cast<TreeElementIdxType>(Idx);
 	}
 
-public:
+
 #if WITH_EDITOR
 	bool CheckNum(const IndexQtType Self_ID) const
 	{
