@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Sensors/PassiveSensor.h"
 #include "Components/PrimitiveComponent.h"
+#include "TimerManager.h"
 
 #include "SensorTouch.generated.h"
 
@@ -94,5 +95,7 @@ public:
 
 	virtual void InitializeFromReceiver(USenseReceiverComponent* InSenseReceiver) override;
 
-	//virtual void Serialize(FArchive& Ar) override;
+	TSet<USenseStimulusBase*> NeedLost;
+	void LostCurrentSensed();
+	void UpdateNeedLost();
 };

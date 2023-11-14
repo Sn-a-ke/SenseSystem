@@ -77,7 +77,7 @@ bool FRegisteredSensorTags::AddSenseStimulus_Internal(USenseStimulusBase* Ssc, c
 			{
 				const uint16 ObjID = ContainerTree->Insert(MoveTemp(NewElem), Box);
 				Str.SetObjID(ObjID);
-				check(Str.GetObjID() != MAX_uint16);
+				check(Str.GetObjID() != TNumericLimits<IContainerTree::ElementIndexType>::Max());
 				Str.ContainerTree = ContainerTree;
 			}
 		}
@@ -94,7 +94,7 @@ bool FRegisteredSensorTags::RemoveSenseStimulus_Internal(USenseStimulusBase* Ssc
 		{
 			ContainerTree->Remove(Str.GetObjID());
 
-			Str.SetObjID(MAX_uint16);
+			Str.SetObjID(TNumericLimits<IContainerTree::ElementIndexType>::Max());
 			Str.ContainerTree = nullptr;
 			if (ContainerTree->Num() <= 0)
 			{

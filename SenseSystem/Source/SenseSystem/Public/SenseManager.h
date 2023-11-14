@@ -79,7 +79,7 @@ class SENSESYSTEM_API USenseManager
 {
 	GENERATED_BODY()
 public:
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FReport_StimulusEvent, uint16, StimulusID, FName, SensorTag);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FReport_StimulusEvent, int32, StimulusID, FName, SensorTag);
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnObjStatusChanged, UObject*, Obj);
 
 	USenseManager();

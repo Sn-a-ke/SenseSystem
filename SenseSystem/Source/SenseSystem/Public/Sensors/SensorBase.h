@@ -6,6 +6,7 @@
 #include "UObject/ObjectMacros.h"
 #include "Templates/SubclassOf.h"
 #include "Templates/Less.h"
+#include "Math/NumericLimits.h"
 #include "HAL/ThreadSafeCounter.h"
 #include "HAL/ThreadSafeBool.h"
 #include "Async/TaskGraphInterfaces.h"
@@ -255,6 +256,9 @@ class SENSESYSTEM_API USensorBase : public UObject
 {
 	GENERATED_BODY()
 public:
+
+	using ElementIndexType = int32;
+
 	USensorBase(const FObjectInitializer& ObjectInitializer);
 	virtual ~USensorBase() override;
 
@@ -699,8 +703,8 @@ public:
 	virtual bool UpdateSensor();
 
 	/**  */
-	virtual void ReportSenseStimulusEvent(USenseStimulusBase* SenseStimulus);
-	virtual void ReportSenseStimulusEvent(uint16 InStimulusID);
+	virtual ElementIndexType ReportSenseStimulusEvent(USenseStimulusBase* SenseStimulus);
+	virtual void ReportSenseStimulusEvent(ElementIndexType InStimulusID);
 
 	/** check ready for sense tests */
 	bool IsValidForTest() const;
@@ -709,6 +713,9 @@ public:
 	bool IsValidForTest_Short() const;
 
 	void TreadSafePostUpdate();
+
+	void ForceLostCurrentSensed(const EOnSenseEvent Ost, const bool bOverrideSenseState = true) const;
+	void ForceLostSensedStimulus(const USenseStimulusBase* SenseStimulus);
 
 protected:
 	void OnSensorUpdateReceiver(EOnSenseEvent SenseEvent, const FChannelSetup& InChannelSetup) const;
@@ -750,11 +757,11 @@ private:
 	bool SensorsTestForSpecifyComponents_V3(const IContainerTree* ContainerTree, ConType&& ObjIDs) const;
 	float UpdtDetectPoolAndReturnMinScore() const;
 	bool UpdtSensorTestForIDInternal(
-		uint16 Idx,
+		ElementIndexType Idx,
 		const IContainerTree* ContainerTree,
 		const float CurrentTime,
 		const float MinScore,
-		TArray<uint16>& ChannelContainsIDs) const;
+		TArray<ElementIndexType>& ChannelContainsIDs) const;
 
 public:
 	/** Check Async Sensor Task IsWorkDone */
@@ -766,8 +773,8 @@ public:
 	void ResetInitialization();
 
 private:
-	ESenseTestResult Sensor_Run_Test(float MinScore, const float CurrentTime, FSensedStimulus& Stimulus, TArray<uint16>& Out) const;
-	void CheckWithCurrent(FSensedStimulus& SS, TArray<uint16>& Out) const;
+	ESenseTestResult Sensor_Run_Test(float MinScore, const float CurrentTime, FSensedStimulus& Stimulus, TArray<ElementIndexType>& Out) const;
+	void CheckWithCurrent(FSensedStimulus& SS, TArray<ElementIndexType>& Out) const;
 
 
 	// NotUProperty
@@ -789,7 +796,7 @@ private:
 	static bool IsZeroBox(const FBox& InBox);
 
 protected:
-	TMap<uint16, uint32> PendingUpdate;
+	TMap<ElementIndexType, uint32> PendingUpdate;
 	FThreadSafeBool bIsHavePendingUpdate;
 
 	virtual float GetCurrentGameTimeInSeconds() const;
@@ -827,10 +834,10 @@ bool USensorBase::SensorsTestForSpecifyComponents_V3(const IContainerTree* Conta
 	if (LIKELY(SensorTests.Num() != 0))
 	{
 		const float MinScore = UpdtDetectPoolAndReturnMinScore();
-		TArray<uint16> ChannelContainsIDs;
+		TArray<ElementIndexType> ChannelContainsIDs;
 		ChannelContainsIDs.Reserve(ChannelSetup.Num());
 
-		for (const uint16 ItID : ObjIDs)
+		for (const ElementIndexType ItID : ObjIDs)
 		{
 			if (UpdtSensorTestForIDInternal(ItID, ContainerTree, CurrentTime, MinScore, ChannelContainsIDs))
 			{

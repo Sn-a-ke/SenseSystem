@@ -33,6 +33,8 @@ public:
 	USenseStimulusComponent(const FObjectInitializer& ObjectInitializer);
 	virtual ~USenseStimulusComponent() override;
 
+	using ElementIndexType = USenseStimulusBase::ElementIndexType;
+
 #if WITH_EDITORONLY_DATA
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& e) override;
 #endif

@@ -7,7 +7,7 @@
 #include "UObject/UObjectGlobals.h"
 
 
-FSenseRunnable::FSenseRunnable(double InWaitTime, int32 InCounter) : WaitTime(InWaitTime), CounterLimit(InCounter)
+FSenseRunnable::FSenseRunnable(const double InWaitTime, const int32 InCounter) : WaitTime(InWaitTime), CounterLimit(InCounter)
 {
 	m_Kill = false;
 	m_Pause = true;

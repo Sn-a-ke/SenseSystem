@@ -34,7 +34,7 @@ void FStimulusTagResponse::SetAge(const float AgeValue)
 	Age = AgeValue;
 	if (ContainerTree)
 	{
-		check(GetObjID() != MAX_uint16);
+		check(GetObjID() != TNumericLimits<ElementIndexType>::Max());
 		ContainerTree->SetAge_TS(GetObjID(), AgeValue);
 	}
 }
@@ -44,7 +44,7 @@ void FStimulusTagResponse::SetScore(const float ScoreValue)
 	Score = ScoreValue;
 	if (ContainerTree)
 	{
-		check(GetObjID() != MAX_uint16);
+		check(GetObjID() != TNumericLimits<ElementIndexType>::Max());
 		ContainerTree->SetScore_TS(GetObjID(), ScoreValue);
 	}
 }
@@ -54,7 +54,7 @@ void FStimulusTagResponse::SetBitChannels(const uint64 NewBit)
 	BitChannels.Value = NewBit;
 	if (ContainerTree)
 	{
-		check(GetObjID() != MAX_uint16);
+		check(GetObjID() != TNumericLimits<ElementIndexType>::Max());
 		ContainerTree->SetChannels_TS(GetObjID(), NewBit);
 	}
 }
@@ -64,7 +64,7 @@ void FStimulusTagResponse::UpdatePosition(const FVector& NewLocation, const TArr
 {
 	if (ContainerTree)
 	{
-		check(GetObjID() != MAX_uint16);
+		check(GetObjID() != TNumericLimits<ElementIndexType>::Max());
 
 		IContainerTree& CTree = *ContainerTree;
 		FSensedStimulus SS = CTree.GetSensedStimulusCopy_Simple_TS(GetObjID());
@@ -595,8 +595,8 @@ void USenseStimulusBase::ReportSenseEvent(const FName Tag)
 	{
 		if (const FStimulusTagResponse* StrPtr = GetStimulusTagResponse(Tag))
 		{
-			const uint16 StimulusID = StrPtr->GetObjID();
-			if (StimulusID != MAX_uint16)
+			const ElementIndexType StimulusID = StrPtr->GetObjID();
+			if (StimulusID != TNumericLimits<ElementIndexType>::Max())
 			{
 				const auto& Delegate = GetSenseManager()->ReportStimulus_Event;
 				if (Delegate.IsBound())

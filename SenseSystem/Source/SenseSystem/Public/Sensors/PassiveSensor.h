@@ -1,4 +1,4 @@
-//Copyright 2020 Alexandr Marchenko. All Rights Reserved. 
+//Copyright 2020 Alexandr Marchenko. All Rights Reserved.
 
 #pragma once
 
@@ -22,8 +22,8 @@ public:
 
 	virtual void BeginDestroy() override;
 
-	virtual void ReportPassiveEvent(class USenseStimulusBase* StimulusComponent) { ReportSenseStimulusEvent(StimulusComponent); }
-	virtual void ReportPassiveEvent(const uint16 StimulusID) { ReportSenseStimulusEvent(StimulusID); }
+	virtual ElementIndexType ReportPassiveEvent(class USenseStimulusBase* StimulusComponent) { return ReportSenseStimulusEvent(StimulusComponent); }
+	virtual void ReportPassiveEvent(const USensorBase::ElementIndexType StimulusID) { ReportSenseStimulusEvent(StimulusID); }
 	virtual bool IsOverrideSenseState() const override { return false; }
 
 };

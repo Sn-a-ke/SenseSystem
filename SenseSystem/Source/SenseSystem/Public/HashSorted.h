@@ -227,13 +227,19 @@ namespace ArraySorted
 	}
 
 
-	FORCEINLINE int32 BoundCount(const FIntPoint Bound) { return (Bound.Y - Bound.X); }
-	FORCEINLINE bool IsValidBound(const FIntPoint Bound, const int32 ArrayNum) { return (BoundCount(Bound) > 0) && (Bound.X < ArrayNum); }
+	inline int32 BoundCount(const FIntPoint Bound)
+	{
+		return (Bound.Y - Bound.X);
+	}
+	inline bool IsValidBound(const FIntPoint Bound, const int32 ArrayNum)
+	{
+		return (BoundCount(Bound) > 0) && (Bound.X < ArrayNum);
+	}
 
 	/***************************************/
 
 	template<typename T, typename SortPredicateType>
-	FORCEINLINE bool Contains_SortedPredicate(const TArray<T>& A, const T& Elem, SortPredicateType SortPredicate)
+	bool Contains_SortedPredicate(const TArray<T>& A, const T& Elem, SortPredicateType SortPredicate)
 	{
 		return INDEX_NONE != Algo::BinarySearch(A, Elem, MoveTempIfPossible(SortPredicate));
 	}
@@ -295,7 +301,7 @@ namespace ArraySorted
 	}
 
 	template<typename T, typename SortPredicateType>
-	FORCEINLINE bool RemoveSorted(TArray<T>& A, const T& Elem, SortPredicateType SortPredicate)
+	bool RemoveSorted(TArray<T>& A, const T& Elem, SortPredicateType SortPredicate)
 	{
 		//checkSlow(Algo::IsSorted(A, SortPredicate));
 		const int32 ID = Algo::BinarySearch(A, Elem, MoveTempIfPossible(SortPredicate));
@@ -465,9 +471,7 @@ namespace ArraySorted
 			else
 			{
 				A.Reserve(A.Num() + B.Num());
-
 				const FIntPoint Bound = GetBoundAofB_P(A, B, SortPredicate);
-
 				A.Insert(B, Bound.Y);
 
 				int32 i = Bound.Y - 1; //from end A
@@ -705,30 +709,30 @@ namespace HashSorted
 	template<typename T>
 	struct TSortHashPredicate
 	{
-		FORCEINLINE bool operator()(const T& A, const T& B) const { return GetTypeHash(A) < GetTypeHash(B); }
+		bool operator()(const T& A, const T& B) const { return GetTypeHash(A) < GetTypeHash(B); }
 	};
 
 	template<typename T>
 	struct TSortTypeHashPredicate
 	{
-		FORCEINLINE bool operator()(const T& A, const uint32 Hash) const { return GetTypeHash(A) < Hash; }
-		FORCEINLINE bool operator()(const uint32 Hash, const T& A) const { return Hash < GetTypeHash(A); }
-		//FORCEINLINE bool operator()(const uint32 HashA, const uint32 HashB ) const { return HashA < HashB; }
+		bool operator()(const T& A, const uint32 Hash) const { return GetTypeHash(A) < Hash; }
+		bool operator()(const uint32 Hash, const T& A) const { return Hash < GetTypeHash(A); }
+		//bool operator()(const uint32 HashA, const uint32 HashB ) const { return HashA < HashB; }
 	};
 
 	template<typename T>
-	FORCEINLINE void ArrayMinusArray(TArray<T>& A, const TArray<T>& B, bool bShrink = true)
+	void ArrayMinusArray(TArray<T>& A, const TArray<T>& B, bool bShrink = true)
 	{
 		ArraySorted::ArrayMinusArray_SortedPredicate(A, B, TSortHashPredicate<T>(), bShrink);
 	}
 
 	template<typename T>
-	FORCEINLINE void Merge(TArray<T>& A, const TArray<T>& B, const bool bOverride = true)
+	void Merge(TArray<T>& A, const TArray<T>& B, const bool bOverride = true)
 	{
 		ArraySorted::Merge_SortedPredicate(A, B, TSortHashPredicate<T>(), bOverride);
 	}
 	template<typename T>
-	FORCEINLINE void Merge(TArray<T>& A, TArray<T>&& B, const bool bOverride = true)
+	void Merge(TArray<T>& A, TArray<T>&& B, const bool bOverride = true)
 	{
 		ArraySorted::Merge_SortedPredicate(A, B, TSortHashPredicate<T>(), bOverride);
 	}
@@ -736,7 +740,7 @@ namespace HashSorted
 	/***************************************/
 
 	template<typename T>
-	FORCEINLINE void SortByHash(TArray<T>& A)
+	void SortByHash(TArray<T>& A)
 	{
 		if (A.Num() > 1)
 		{
@@ -745,46 +749,46 @@ namespace HashSorted
 	}
 
 	template<typename T>
-	FORCEINLINE bool IsSortedByHash(const TArray<T>& A)
+	bool IsSortedByHash(const TArray<T>& A)
 	{
 		return Algo::IsSorted(A, TSortHashPredicate<T>());
 	}
 
 	template<typename T>
-	FORCEINLINE int32 BinarySearchByHash(const TArray<T>& A, const T& FindElement)
+	int32 BinarySearchByHash(const TArray<T>& A, const T& FindElement)
 	{
 		return Algo::BinarySearch(A, FindElement, TSortHashPredicate<T>());
 	}
 
 	template<typename T>
-	FORCEINLINE bool Contains(const TArray<T>& A, const T& Elem)
+	bool Contains(const TArray<T>& A, const T& Elem)
 	{
 		return ArraySorted::Contains_SortedPredicate(A, Elem, TSortHashPredicate<T>());
 	}
 
 
 	template<typename T>
-	FORCEINLINE bool Remove(TArray<T>& A, const T& Elem)
+	bool Remove(TArray<T>& A, const T& Elem)
 	{
 		return ArraySorted::RemoveSorted(A, Elem, TSortHashPredicate<T>());
 	}
 
 
 	template<typename T>
-	FORCEINLINE int32 InsertUnique(TArray<T>& A, const T& Insert, bool bOverride = false)
+	int32 InsertUnique(TArray<T>& A, const T& Insert, bool bOverride = false)
 	{
 		return ArraySorted::InsertUniqueSorted(A, MoveTempIfPossible(Insert), TSortHashPredicate<T>(), bOverride);
 	}
 
 	/**Duplicates*/
 	template<typename T>
-	FORCEINLINE bool RemoveDuplicates(TArray<T>& A)
+	bool RemoveDuplicates(TArray<T>& A)
 	{
 		return ArraySorted::RemoveDuplicates_Sorted(A);
 	}
 
 	template<typename T> //, typename SortPredicateType
-	FORCEINLINE int32 FindInsertID_InBound(
+	int32 FindInsertID_InBound(
 		const TArray<T>& A,
 		const T& FindElement,
 		int32 StartIdx = 0,
@@ -799,7 +803,7 @@ namespace HashSorted
 	}
 
 	template<typename T>
-	FORCEINLINE int32 BinarySearch_InBound(const TArray<T>& A, const T& FindElement, int32 StartIdx = 0, int32 EndNum = MAX_int32)
+	int32 BinarySearch_InBound(const TArray<T>& A, const T& FindElement, int32 StartIdx = 0, int32 EndNum = MAX_int32)
 	{
 		if (EndNum == MAX_int32)
 		{
@@ -812,13 +816,13 @@ namespace HashSorted
 	/***************************************/
 
 	template<typename T>
-	FORCEINLINE int32 BinarySearch_HashType(const TArray<T>& A, const uint32 Hash)
+	int32 BinarySearch_HashType(const TArray<T>& A, const uint32 Hash)
 	{
 		return Algo::BinarySearch(A, Hash, TSortTypeHashPredicate<T>());
 	}
 
 	template<typename T>
-	FORCEINLINE bool Contains_HashType(const TArray<T>& A, const uint32 Hash)
+	bool Contains_HashType(const TArray<T>& A, const uint32 Hash)
 	{
 		if (A.Num())
 		{
@@ -833,7 +837,7 @@ namespace HashSorted
 	}
 
 	template<typename T>
-	FORCEINLINE int32 Remove_HashType(TArray<T>& A, const uint32 Hash, const bool bAllowShrinking = true)
+	int32 Remove_HashType(TArray<T>& A, const uint32 Hash, const bool bAllowShrinking = true)
 	{
 		const int32 ID = Algo::BinarySearch(A, Hash, TSortTypeHashPredicate<T>());
 		if (ID != INDEX_NONE)

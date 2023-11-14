@@ -74,7 +74,7 @@ bool USenseReceiverComponent::RegisterSelfSense()
 			AddToRoot();
 			for (uint8 i = 1; i < 4; i++)
 			{
-				const auto& SensorsArr = GetSensorsByType(static_cast<ESensorType>(i));
+				const auto SensorsArr = GetSensorsByType(static_cast<ESensorType>(i));
 				//ArrayHelpers::Filter_Sorted_V2(SensorsArr, [](const USensorBase* In) { return IsValid(In); }); //todo:USenseReceiverComponent::RegisterSelfSense : remove invalid sensors?
 
 				for (USensorBase* const It : SensorsArr)
@@ -120,7 +120,7 @@ bool USenseReceiverComponent::UnRegisterSelfSense()
 
 	for (uint8 i = 1; i < 4; i++)
 	{
-		const TArray<USensorBase*>& SensorsArr = GetSensorsByType(static_cast<ESensorType>(i));
+		const TArray<USensorBase*> SensorsArr = GetSensorsByType(static_cast<ESensorType>(i));
 		for (USensorBase* const It : SensorsArr)
 		{
 			if (It)
@@ -146,7 +146,7 @@ void USenseReceiverComponent::OnRegister()
 	{
 		for (uint8 i = 1; i < 4; i++)
 		{
-			const TArray<USensorBase*>& SensorsArr = GetSensorsByType(static_cast<ESensorType>(i));
+			const TArray<USensorBase*> SensorsArr = GetSensorsByType(static_cast<ESensorType>(i));
 			for (USensorBase* const It : SensorsArr)
 			{
 				if (IsValid(It))
@@ -213,7 +213,7 @@ void USenseReceiverComponent::TickComponent(const float DeltaTime, ELevelTick Ti
 	{
 		for (uint8 i = 1; i < 4; i++) //iterate all
 		{
-			const TArray<USensorBase*>& SensorsArr = GetSensorsByType(static_cast<ESensorType>(i));
+			const TArray<USensorBase*> SensorsArr = GetSensorsByType(static_cast<ESensorType>(i));
 			for (USensorBase* const It : SensorsArr)
 			{
 				if (LIKELY(It))
@@ -319,7 +319,7 @@ const FOnSensorUpdateDelegate& USenseReceiverComponent::GetDelegateBySenseEvent(
 
 /************************************/
 
-const TArray<USenseStimulusBase*>& USenseReceiverComponent::GetTrackTargetComponents() const
+TArray<USenseStimulusBase*> USenseReceiverComponent::GetTrackTargetComponents() const
 {
 	return TrackTargetComponents;
 }
@@ -406,49 +406,50 @@ void USenseReceiverComponent::TrackTargets(const TArray<FSensedStimulus>& InSens
 
 /************************************/
 
-const TArray<TObjectPtr<USensorBase>>& USenseReceiverComponent::GetSensorsByType(const ESensorType Sensor_Type) const
+namespace ArrayCopyHelper
 {
-	check(Sensor_Type != ESensorType::None);
-	switch (Sensor_Type)
+	template<typename T1, typename T2>
+	static TArray<T1> CopyByType(const TArray<T2>& Source)
 	{
-		case ESensorType::Active: return TypeArr(ActiveSensors);
-		case ESensorType::Passive: return TypeArr(PassiveSensors);
-		case ESensorType::Manual: return TypeArr(ManualSensors);
-		default: break;
+		TArray<T1> Out;
+		Out.Init(nullptr, Source.Num());
+		for (int32 i = 0; i < Source.Num(); ++i)
+		{
+			Out[i] = Source[i];
+		}
+		return MoveTemp(Out);
 	}
-	checkNoEntry();
-	UE_ASSUME(0);
-	return TypeArr(ActiveSensors);
-}
+} // namespace ArrayCopyHelper
 
-TArray<TObjectPtr<USensorBase>>& USenseReceiverComponent::GetSensorsByType(ESensorType Sensor_Type)
+
+TArray<TObjectPtr<USensorBase>> USenseReceiverComponent::GetSensorsByType(const ESensorType Sensor_Type) const
 {
-	check(Sensor_Type != ESensorType::None);
+	TArray<TObjectPtr<USensorBase>> Out;
 	switch (Sensor_Type)
 	{
-		case ESensorType::Active: return TypeArr(ActiveSensors);
-		case ESensorType::Passive: return TypeArr(PassiveSensors);
-		case ESensorType::Manual: return TypeArr(ManualSensors);
+		case ESensorType::Active:
+		{
+			Out = ArrayCopyHelper::CopyByType<TObjectPtr<USensorBase>, TObjectPtr<UActiveSensor>>(ActiveSensors);
+			break;
+		}
+		case ESensorType::Passive:
+		{
+			Out = ArrayCopyHelper::CopyByType<TObjectPtr<USensorBase>, TObjectPtr<UPassiveSensor>>(PassiveSensors);
+			break;
+		}
+		case ESensorType::Manual:
+		{
+			Out = ArrayCopyHelper::CopyByType<TObjectPtr<USensorBase>, TObjectPtr<UActiveSensor>>(ManualSensors);
+			break;
+		}
 		default: break;
 	}
-	checkNoEntry();
-	UE_ASSUME(0);
-	return TypeArr(ActiveSensors);
+	return Out;
 }
 
 TArray<USensorBase*> USenseReceiverComponent::GetSensorsByType_BP(const ESensorType Sensor_Type) const
 {
-	TArray<USensorBase*> Out;
-	if (Sensor_Type != ESensorType::None)
-	{
-		const auto& Arr = GetSensorsByType(Sensor_Type);
-		Out.Reserve(Arr.Num());
-		for (auto It : Arr)
-		{
-			Out.Add(It);
-		}
-	}
-	return Out;
+	return GetSensorsByType(Sensor_Type);
 }
 
 USensorBase* USenseReceiverComponent::GetSensor_ByClass(TSubclassOf<USensorBase> SensorClass, ESuccessState& SuccessState) const
@@ -519,8 +520,7 @@ USensorBase* USenseReceiverComponent::GetManualSensor_ByClass(const TSubclassOf<
 
 UActiveSensor* USenseReceiverComponent::GetActiveSensor_ByTag(const FName Tag, ESuccessState& SuccessState) const
 {
-	const auto FindElem = FindInArray_ByTag(ActiveSensors, Tag);
-	UActiveSensor* Ptr = Cast<UActiveSensor>(FindElem);
+	const auto Ptr = FindInArray_ByTag<UActiveSensor>(ActiveSensors, Tag);
 	if (IsValid(Ptr))
 	{
 		SuccessState = ESuccessState::Success;
@@ -532,9 +532,9 @@ UActiveSensor* USenseReceiverComponent::GetActiveSensor_ByTag(const FName Tag, E
 	return Ptr;
 }
 
-USensorBase* USenseReceiverComponent::GetPassiveSensor_ByTag(const FName Tag, ESuccessState& SuccessState) const
+UPassiveSensor* USenseReceiverComponent::GetPassiveSensor_ByTag(const FName Tag, ESuccessState& SuccessState) const
 {
-	USensorBase* Ptr = FindInArray_ByTag(PassiveSensors, Tag);
+	const auto Ptr = FindInArray_ByTag<UPassiveSensor>(PassiveSensors, Tag);
 	if (IsValid(Ptr))
 	{
 		SuccessState = ESuccessState::Success;
@@ -548,8 +548,7 @@ USensorBase* USenseReceiverComponent::GetPassiveSensor_ByTag(const FName Tag, ES
 
 UActiveSensor* USenseReceiverComponent::GetManualSensor_ByTag(const FName Tag, ESuccessState& SuccessState) const
 {
-	const auto FindElem = FindInArray_ByTag(ManualSensors, Tag);
-	UActiveSensor* Ptr = Cast<UActiveSensor>(FindElem);
+	const auto Ptr = FindInArray_ByTag<UActiveSensor>(ManualSensors, Tag);
 	if (IsValid(Ptr))
 	{
 		SuccessState = ESuccessState::Success;
@@ -655,7 +654,7 @@ void USenseReceiverComponent::FindActorInAllSensors(
 		{
 			for (uint8 i = 1; i < 4; i++)
 			{
-				const auto& SensorsArr = GetSensorsByType(static_cast<ESensorType>(i));
+				const auto SensorsArr = GetSensorsByType(static_cast<ESensorType>(i));
 				for (const USensorBase* It : SensorsArr)
 				{
 					if (It)
@@ -764,9 +763,9 @@ USenseManager* USenseReceiverComponent::GetSenseManager() const
 
 /************************************/
 
-void USenseReceiverComponent::BindOnReportStimulusEvent(const uint16 StimulusID, const FName SensorTag)
+void USenseReceiverComponent::BindOnReportStimulusEvent(const int32 StimulusID, const FName SensorTag)
 {
-	if (bEnableSenseReceiver && SensorTag != NAME_None && StimulusID != MAX_uint16 && IsValid(this))
+	if (bEnableSenseReceiver && SensorTag != NAME_None && StimulusID != TNumericLimits<ElementIndexType>::Max() && IsValid(this))
 	{
 		for (UPassiveSensor* const It : PassiveSensors)
 		{
@@ -784,7 +783,7 @@ void USenseReceiverComponent::PostEditChangeProperty(struct FPropertyChangedEven
 	Super::PostEditChangeProperty(e);
 	for (uint8 i = 1; i < 4; i++)
 	{
-		const auto& SensorsArr = GetSensorsByType(static_cast<ESensorType>(i));
+		const auto SensorsArr = GetSensorsByType(static_cast<ESensorType>(i));
 		for (USensorBase* const It : SensorsArr)
 		{
 			if (It)
@@ -816,8 +815,8 @@ EDataValidationResult USenseReceiverComponent::IsDataValid(FDataValidationContex
 	EDataValidationResult IsValid = Super::IsDataValid(ValidationErrors);
 	for (uint8 i = 1; i < 4; i++)
 	{
-		const auto& SensorsArr = GetSensorsByType(static_cast<ESensorType>(i));
-		for (USensorBase* It : SensorsArr)
+		const auto SensorsArr = GetSensorsByType(static_cast<ESensorType>(i));
+		for (const auto It : SensorsArr)
 		{
 			if (It)
 			{
@@ -839,7 +838,7 @@ void USenseReceiverComponent::DrawComponent(const FSceneView* View, FPrimitiveDr
 
 	for (uint8 i = 1; i < 4; i++)
 	{
-		const auto& SensorsArr = GetSensorsByType(static_cast<ESensorType>(i));
+		const auto SensorsArr = GetSensorsByType(static_cast<ESensorType>(i));
 		for (const USensorBase* It : SensorsArr)
 		{
 			if (It && It->bEnable)
@@ -925,7 +924,7 @@ USensorBase* USenseReceiverComponent::CreateNewSensor(
 	const bool bPlayWorld = World && World->IsGameWorld() && World->HasBegunPlay() && !World->bIsTearingDown;
 	if (IsValid(this) && bPlayWorld && SensorClass != nullptr && Sensor_Type != ESensorType::None && Tag != NAME_None)
 	{
-		TArray<TObjectPtr<USensorBase>>& TargetArr = GetSensorsByType(Sensor_Type);
+		TArray<TObjectPtr<USensorBase>> TargetArr = GetSensorsByType(Sensor_Type);
 		if (FindInArray_ByTag(TargetArr, Tag) == nullptr)
 		{
 			switch (Sensor_Type)
@@ -1040,7 +1039,7 @@ bool USenseReceiverComponent::DestroySensor(const ESensorType Sensor_Type, const
 	const bool bPlayWorld = World && World->IsGameWorld() && World->HasBegunPlay() && !World->bIsTearingDown;
 	if (IsValid(this) && bPlayWorld && Sensor_Type != ESensorType::None && Tag != NAME_None)
 	{
-		TArray<TObjectPtr<USensorBase>>& TargetArr = GetSensorsByType(Sensor_Type);
+		TArray<TObjectPtr<USensorBase>> TargetArr = GetSensorsByType(Sensor_Type);
 		if (USensorBase* Sen = FindInArray_ByTag(TargetArr, Tag))
 		{
 			Sen->SetEnableSensor(false);
@@ -1099,7 +1098,7 @@ bool USenseReceiverComponent::CheckSensorTestToDefaults(TArray<FSenseSysRestoreO
 			const EOwnerBlueprintClassType BlueprintClassType = USenseSystemBPLibrary::GetOwnerBlueprintClassType(BaseClass);
 			const FName RecName = GetFName();
 
-			if (UBlueprint* Blueprint_Self = Cast<UBlueprint>(BaseClass->ClassGeneratedBy))
+			if (const UBlueprint* Blueprint_Self = Cast<UBlueprint>(BaseClass->ClassGeneratedBy))
 			{
 				switch (BlueprintClassType)
 				{
@@ -1116,11 +1115,11 @@ bool USenseReceiverComponent::CheckSensorTestToDefaults(TArray<FSenseSysRestoreO
 					{
 						if (!DefaultComponent && BlueprintClassType == EOwnerBlueprintClassType::SenseReceiverComponentBP)
 						{
-							if (UBlueprintGeneratedClass* ParentClass_0 = Cast<UBlueprintGeneratedClass>(Blueprint_Self->ParentClass))
+							if (const UBlueprintGeneratedClass* ParentClass_0 = Cast<UBlueprintGeneratedClass>(Blueprint_Self->ParentClass))
 							{
 								DefaultComponent = Cast<USenseReceiverComponent>(ParentClass_0->ClassDefaultObject);
 							}
-							else if (UClass* ParentClass_1 = Cast<UClass>(Blueprint_Self->ParentClass))
+							else if (const UClass* ParentClass_1 = Cast<UClass>(Blueprint_Self->ParentClass))
 							{
 								DefaultComponent = Cast<USenseReceiverComponent>(ParentClass_1->GetDefaultObject(true));
 							}
@@ -1132,8 +1131,8 @@ bool USenseReceiverComponent::CheckSensorTestToDefaults(TArray<FSenseSysRestoreO
 
 						//if (InSensor_Type != ESensorType::None)
 						{
-							TArray<USensorBase*>& SensorsArr = GetSensorsByType(InSensor_Type);
-							TArray<USensorBase*>& SensorCDO_Arr = DefaultComponent->GetSensorsByType(InSensor_Type);
+							TArray<USensorBase*> SensorsArr = GetSensorsByType(InSensor_Type);
+							TArray<USensorBase*> SensorCDO_Arr = DefaultComponent->GetSensorsByType(InSensor_Type);
 							for (int32 j = 0; j < SensorCDO_Arr.Num(); ++j)
 							{
 								if (IsValid(SensorCDO_Arr[j]))

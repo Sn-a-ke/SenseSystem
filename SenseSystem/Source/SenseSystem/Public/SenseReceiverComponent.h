@@ -25,7 +25,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(
 	FOnSensorUpdateDelegate,
 	const USensorBase*, SensorPtr,
 	int32, Channel,
-	const TArray<FSensedStimulus>&, inSensedStimulus);
+	const TArray<FSensedStimulus>, inSensedStimulus);
 // clang-format on
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnMainTargetStatusChanged, AActor*, Actor, FSensedStimulus, SensedStimulus, const EOnSenseEvent, SenseEvent);
@@ -41,6 +41,7 @@ class SENSESYSTEM_API USenseReceiverComponent : public USceneComponent
 public:
 	USenseReceiverComponent(const FObjectInitializer& ObjectInitializer);
 	virtual ~USenseReceiverComponent() override;
+	using ElementIndexType = USensorBase::ElementIndexType;
 
 private:
 	// NotUproperty
@@ -146,11 +147,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "SenseSystem|SenseReceiver", meta = (DeterminesOutputType = "SensorClass", Keywords = "Destroy Remove Delete Sensor"))
 	bool DestroySensor(ESensorType Sensor_Type, FName Tag);
 
-	const TArray<TObjectPtr<USensorBase>>& GetSensorsByType(ESensorType Sensor_Type) const;
-	TArray<TObjectPtr<USensorBase>>& GetSensorsByType(ESensorType Sensor_Type);
 	
 	UFUNCTION(BlueprintCallable, BlueprintPure = false, Category = "SenseSystem|SenseReceiver", meta = (Keywords = "Get Sensors By Type"))
 	TArray<USensorBase*> GetSensorsByType_BP(ESensorType Sensor_Type) const;
+	TArray<TObjectPtr<USensorBase>> GetSensorsByType(ESensorType Sensor_Type) const;
 
 
 	/*Get Sensor with force validation By Class*/
@@ -185,7 +185,7 @@ public:
 	
 	/*Get Passive Sensor with force validation By Tag*/
 	UFUNCTION(BlueprintCallable, BlueprintPure = false, Category = "SenseSystem|SenseReceiver", meta = (ExpandEnumAsExecs = SuccessState, Keywords = "Get Passive Sensors By Tag"))
-	USensorBase* GetPassiveSensor_ByTag(FName Tag, ESuccessState& SuccessState) const;
+	UPassiveSensor* GetPassiveSensor_ByTag(FName Tag, ESuccessState& SuccessState) const;
 	
 	/*Get Manual Sensor with force validation By Tag*/
 	UFUNCTION(BlueprintCallable, BlueprintPure = false, Category = "SenseSystem|SenseReceiver", meta = (ExpandEnumAsExecs = SuccessState, Keywords = "Get Manual Sensors By Tag"))
@@ -241,7 +241,7 @@ public:
 	FOnMainTargetStatusChanged OnMainTargetStatusChanged;
 
 	UFUNCTION(BlueprintCallable, Category = "SenseSystem|SenseReceiver", meta = (Keywords = "Get Track Target Component Components"))
-	const TArray<USenseStimulusBase*>& GetTrackTargetComponents() const;
+	TArray<USenseStimulusBase*> GetTrackTargetComponents() const;
 
 	UFUNCTION(BlueprintCallable, Category = "SenseSystem|SenseReceiver", meta = (Keywords = "Get Track Target Actor Actors"))
 	TArray<AActor*> GetTrackTargetActors() const;
@@ -289,7 +289,7 @@ public:
 	void SetEnableAllSensors(bool bEnable, bool bForget = true);
 
 	UFUNCTION()
-	void BindOnReportStimulusEvent(uint16 StimulusID, FName SensorTag);
+	void BindOnReportStimulusEvent(int32 StimulusID, FName SensorTag);
 
 	/************************************/
 
@@ -310,41 +310,25 @@ private:
 	};
 
 	template<class T>
-	static USensorBase* FindInArray_ByTag(const TArray<TObjectPtr<T>>& InArr, FName Tag);
+	static T* FindInArray_ByTag(const TArray<TObjectPtr<T>>& InArr, FName Tag);
 	template<class T>
-	static USensorBase* FindInArray_ByClass(const TArray<TObjectPtr<T>>& InArr, TSubclassOf<USensorBase> SensorClass);
+	static T* FindInArray_ByClass(const TArray<TObjectPtr<T>>& InArr, TSubclassOf<USensorBase> SensorClass);
 
-	template<class T>
-	static const TArray<TObjectPtr<USensorBase>>& TypeArr(const TArray<TObjectPtr<T>>& InArr);
-	template<class T>
-	static TArray<TObjectPtr<USensorBase>>& TypeArr(TArray<TObjectPtr<T>>& InArr);
+
 };
 
 
 template<class T>
-FORCEINLINE USensorBase* USenseReceiverComponent::FindInArray_ByTag(const TArray<TObjectPtr<T>>& InArr, const FName Tag)
+FORCEINLINE T* USenseReceiverComponent::FindInArray_ByTag(const TArray<TObjectPtr<T>>& InArr, const FName Tag)
 {
-	const auto& Arr = TypeArr(InArr);
-	const int32 ID = Arr.IndexOfByPredicate(FSensorByTagPredicate(Tag));
-	return ID != INDEX_NONE ? Arr[ID] : nullptr;
+	const int32 ID = InArr.IndexOfByPredicate(FSensorByTagPredicate(Tag));
+	return ID != INDEX_NONE ? InArr[ID] : nullptr;
 }
 template<class T>
-FORCEINLINE USensorBase* USenseReceiverComponent::FindInArray_ByClass(const TArray<TObjectPtr<T>>& InArr, const TSubclassOf<USensorBase> SensorClass)
+FORCEINLINE T* USenseReceiverComponent::FindInArray_ByClass(const TArray<TObjectPtr<T>>& InArr, const TSubclassOf<USensorBase> SensorClass)
 {
-	const auto& Arr = TypeArr(InArr);
-	const int32 ID = Arr.IndexOfByPredicate(FObjectByClassPredicate(SensorClass));
-	return ID != INDEX_NONE ? Arr[ID] : nullptr;
-}
-
-template<class T>
-FORCEINLINE const TArray<TObjectPtr<USensorBase>>& USenseReceiverComponent::TypeArr(const TArray<TObjectPtr<T>>& InArr)
-{
-	return reinterpret_cast<const TArray<TObjectPtr<USensorBase>>&>(InArr);
-}
-template<class T>
-FORCEINLINE TArray<TObjectPtr<USensorBase>>& USenseReceiverComponent::TypeArr(TArray<TObjectPtr<T>>& InArr)
-{
-	return reinterpret_cast<TArray<TObjectPtr<USensorBase>>&>(InArr);
+	const int32 ID = InArr.IndexOfByPredicate(FObjectByClassPredicate(SensorClass));
+	return ID != INDEX_NONE ? InArr[ID] : nullptr;
 }
 
 
@@ -353,7 +337,7 @@ FORCEINLINE void USenseReceiverComponent::UpdateContainsSenseThreadSensors()
 	bContainsSenseThreadSensors = false;
 	for (uint8 i = 1; i < 4; i++)
 	{
-		const auto& SensorsArr = GetSensorsByType(static_cast<ESensorType>(i));
+		const auto SensorsArr = GetSensorsByType(static_cast<ESensorType>(i));
 		for (const auto It : SensorsArr)
 		{
 			if (It && (It->SensorThreadType == ESensorThreadType::Sense_Thread || It->SensorThreadType == ESensorThreadType::Sense_Thread_HighPriority))

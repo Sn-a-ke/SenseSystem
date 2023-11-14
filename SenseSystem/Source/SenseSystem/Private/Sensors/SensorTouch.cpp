@@ -9,6 +9,7 @@
 
 #include "GameFramework/Actor.h"
 #include "Components/SceneComponent.h"
+#include "Engine/World.h"
 
 #if WITH_EDITORONLY_DATA
 	#include "Components/CapsuleComponent.h"
@@ -34,9 +35,7 @@ USensorTouch::USensorTouch(const FObjectInitializer& ObjectInitializer) : Super(
 	}
 }
 
-USensorTouch::~USensorTouch()
-{
-}
+USensorTouch::~USensorTouch() {}
 
 void USensorTouch::BeginDestroy()
 {
@@ -89,7 +88,17 @@ void USensorTouch::DrawSensor(const class FSceneView* View, class FPrimitiveDraw
 				const UCapsuleComponent* Capsule = Cast<UCapsuleComponent>(Prim);
 				if (Capsule)
 				{
-					DrawWireCapsule(PDI, Loc, Q.GetForwardVector(), Q.GetRightVector(), Q.GetUpVector(), Color, Capsule->GetScaledCapsuleRadius() + 1.f, Capsule->GetScaledCapsuleHalfHeight() + 1.f, 8, SDPG_World);
+					DrawWireCapsule(
+						PDI,
+						Loc,
+						Q.GetForwardVector(),
+						Q.GetRightVector(),
+						Q.GetUpVector(),
+						Color,
+						Capsule->GetScaledCapsuleRadius() + 1.f,
+						Capsule->GetScaledCapsuleHalfHeight() + 1.f,
+						8,
+						SDPG_World);
 					continue;
 				}
 				const UBoxComponent* Box = Cast<UBoxComponent>(Prim);
@@ -192,14 +201,22 @@ void USensorTouch::RemoveTouchCollisions(TArray<UPrimitiveComponent*> InTouchCol
 /************************************/
 
 void USensorTouch::OnTouchHit(
-	UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+	UPrimitiveComponent* HitComponent, //
+	AActor* OtherActor,
+	UPrimitiveComponent* OtherComp,
+	FVector NormalImpulse,
+	const FHitResult& Hit)
 {
 	if (IsValidForTest_Short() && bEnable && GetSenseReceiverComponent()->bEnableSenseReceiver)
 	{
-		USenseStimulusBase* SenseStimulus = USenseSystemBPLibrary::GetStimulusFromActor(OtherActor);
-		if (SenseStimulus)
+		if (USenseStimulusBase* SenseStimulus = USenseSystemBPLibrary::GetStimulusFromActor(OtherActor))
 		{
 			ReportPassiveEvent(SenseStimulus);
+			if (const UWorld* World = GetWorld())
+			{
+				NeedLost.Add(SenseStimulus);
+				World->GetTimerManager().SetTimerForNextTick(this, &USensorTouch::UpdateNeedLost);
+			}
 		}
 	}
 }
@@ -214,8 +231,7 @@ void USensorTouch::OnBeginOverlap(
 {
 	if (IsValidForTest_Short() && bEnable && GetSenseReceiverComponent()->bEnableSenseReceiver)
 	{
-		USenseStimulusBase* SenseStimulus = USenseSystemBPLibrary::GetStimulusFromActor(OtherActor);
-		if (SenseStimulus)
+		if (USenseStimulusBase* SenseStimulus = USenseSystemBPLibrary::GetStimulusFromActor(OtherActor))
 		{
 			ReportPassiveEvent(SenseStimulus);
 		}
@@ -226,9 +242,10 @@ void USensorTouch::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 {
 	if (IsValidForTest_Short() && bEnable && GetSenseReceiverComponent()->bEnableSenseReceiver)
 	{
-		USenseStimulusBase* SenseStimulus = USenseSystemBPLibrary::GetStimulusFromActor(OtherActor);
-		if (SenseStimulus)
-		{
+		if (USenseStimulusBase* SenseStimulus = USenseSystemBPLibrary::GetStimulusFromActor(OtherActor))
+		{			
+			NeedLost.Add(SenseStimulus);
+			UpdateNeedLost();
 		}
 	}
 }
@@ -246,8 +263,8 @@ void USensorTouch::BindHitEvent(UPrimitiveComponent* InTouchCollision)
 		if (bOnComponentBeginOverlap)
 		{
 			InTouchCollision->OnComponentBeginOverlap.AddUniqueDynamic(this, &USensorTouch::OnBeginOverlap);
+			InTouchCollision->OnComponentEndOverlap.AddUniqueDynamic(this, &USensorTouch::OnEndOverlap);
 		}
-		//InTouchCollision->OnComponentEndOverlap.AddUniqueDynamic(this, &USensorTouch::OnEndOverlap);
 	}
 }
 void USensorTouch::BindHitEvent(TArray<UPrimitiveComponent*> InTouchCollisions)
@@ -295,6 +312,22 @@ void USensorTouch::InitializeFromReceiver(USenseReceiverComponent* InSenseReceiv
 			}
 		}
 	}
+}
+
+void USensorTouch::LostCurrentSensed()
+{
+	ForceLostCurrentSensed(DetectDepth, true);
+}
+void USensorTouch::UpdateNeedLost()
+{
+	for (auto It : NeedLost)
+	{
+		ForceLostSensedStimulus(It);
+	}
+	NeedLost.Empty();
+	SensorTimer.ContinueTimer();
+	DetectionLostAndForgetUpdate();
+	TreadSafePostUpdate();
 }
 
 /*
