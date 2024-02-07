@@ -368,7 +368,7 @@ public:
 	EOnSenseEvent DetectDepth = EOnSenseEvent::SenseForget;
 
 	/** CallStimulusFlag */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sensor", meta = (Bitmask, BitmaskEnum = "/Script/SenseSystem.ECallStimulusFlag"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sensor", meta = (Bitmask, BitmaskEnum = "ECallStimulusFlag"))
 	uint8 CallStimulusFlag =										 //
 		static_cast<uint8>(ECallStimulusFlag::CallOnCurrentSensed) | //
 		static_cast<uint8>(ECallStimulusFlag::CallOnNewSensed) |	 //

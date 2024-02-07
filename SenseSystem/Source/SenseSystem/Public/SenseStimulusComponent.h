@@ -41,7 +41,7 @@ public:
 
 	virtual void OnRegister() override;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "SenseStimulus", 	meta = (Bitmask, BitmaskEnum = "/Script/SenseSystem.ESSInterfaceFlag"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "SenseStimulus", 	meta = (Bitmask, BitmaskEnum = "ESSInterfaceFlag"))
 	uint8 InterfaceOwnerBitFlags = 0;
 
 	UFUNCTION(BlueprintCallable, Category = "SenseSystem|SenseStimulus", meta = (Keywords = "Set Interface Flag Stimulus"))
