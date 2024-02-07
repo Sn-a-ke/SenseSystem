@@ -9,17 +9,16 @@
 #include "Containers/SparseArray.h"
 #include <algorithm>
 
+#include "SenseSystem.h"
 #include "SensedStimulStruct.h"
-
+using ElementIndexType = FSenseSystemModule::ElementIndexType;
 
 class FSenseDetectPool
 {
 	TSparseArray<FSensedStimulus> ObjPool;
-
 public:
 	FSenseDetectPool() { ObjPool.Reserve(128); }
 	~FSenseDetectPool() {}
-	using ElementIndexType = int32;
 
 	const TSparseArray<FSensedStimulus>& GetPool() const;
 	TSparseArray<FSensedStimulus>& GetPool();
@@ -150,7 +149,7 @@ FORCEINLINE TSparseArray<FSensedStimulus>& FSenseDetectPool::GetPool()
 	return ObjPool;
 }
 
-FORCEINLINE TArray<FSenseDetectPool::ElementIndexType>& FSenseDetectPool::BySenseEvent_Ref(const ESensorArrayByType SenseEvent)
+FORCEINLINE TArray<ElementIndexType>& FSenseDetectPool::BySenseEvent_Ref(const ESensorArrayByType SenseEvent)
 {
 	switch (SenseEvent)
 	{
@@ -163,7 +162,7 @@ FORCEINLINE TArray<FSenseDetectPool::ElementIndexType>& FSenseDetectPool::BySens
 	checkNoEntry();
 	return Current;
 }
-FORCEINLINE const TArray<FSenseDetectPool::ElementIndexType>& FSenseDetectPool::BySenseEvent_Ref(const ESensorArrayByType SenseEvent) const
+FORCEINLINE const TArray<ElementIndexType>& FSenseDetectPool::BySenseEvent_Ref(const ESensorArrayByType SenseEvent) const
 {
 	switch (SenseEvent)
 	{
@@ -224,11 +223,11 @@ FORCEINLINE void FSenseDetectPool::EmptyArr(const ESensorArrayByType SenseEvent)
 	EmptyArr(BySenseEvent_Ref(SenseEvent));
 }
 
-FORCEINLINE FSenseDetectPool::ElementIndexType FSenseDetectPool::ContainsInCurrentSense(const FSensedStimulus& InElem) const
+FORCEINLINE ElementIndexType FSenseDetectPool::ContainsInCurrentSense(const FSensedStimulus& InElem) const
 {
 	return ContainsIn(InElem, Current);
 }
-FORCEINLINE FSenseDetectPool::ElementIndexType FSenseDetectPool::ContainsInLostSense(const FSensedStimulus& InElem) const
+FORCEINLINE ElementIndexType FSenseDetectPool::ContainsInLostSense(const FSensedStimulus& InElem) const
 {
 	return ContainsIn(InElem, Lost);
 }

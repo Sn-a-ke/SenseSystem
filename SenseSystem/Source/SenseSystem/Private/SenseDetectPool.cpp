@@ -6,10 +6,10 @@
 #include "HashSorted.h"
 #include "SenseStimulusBase.h"
 
+using ElementIndexType = FSenseSystemModule::ElementIndexType;
 
 struct FSortIDPredicate
 {
-	using ElementIndexType = FSenseDetectPool::ElementIndexType; // int32
 	using HashValueType = uint32;
 
 	explicit FSortIDPredicate(const TSparseArray<FSensedStimulus>& InPoolRef) : PoolRef(InPoolRef) {}
@@ -24,7 +24,6 @@ private:
 
 struct FSortScorePredicate
 {
-	using ElementIndexType = FSenseDetectPool::ElementIndexType;
 	explicit FSortScorePredicate(const TSparseArray<FSensedStimulus>& InPoolRef, const TArray<ElementIndexType>& NewCurrentSensed)
 		: PoolRef(InPoolRef)
 		, Arr(NewCurrentSensed)
@@ -38,7 +37,6 @@ private:
 
 struct FSortHashScorePredicate
 {
-	using ElementIndexType = FSenseDetectPool::ElementIndexType;
 	explicit FSortHashScorePredicate(const TSparseArray<FSensedStimulus>& InPoolRef, const TArray<ElementIndexType>& NewCurrentSensed)
 		: PoolRef(InPoolRef)
 		, Arr(NewCurrentSensed)
@@ -54,7 +52,6 @@ private:
 
 struct FValidPoolIdx
 {
-	using ElementIndexType = FSenseDetectPool::ElementIndexType;
 	explicit FValidPoolIdx(const TSparseArray<FSensedStimulus>& In) : PoolRef(In) {}
 	const TSparseArray<FSensedStimulus>& PoolRef;
 	FORCEINLINE bool operator()(const ElementIndexType ElemID) const { return !PoolRef[ElemID].StimulusComponent.IsValid(); }
@@ -62,7 +59,6 @@ struct FValidPoolIdx
 
 struct FInvalidRemoveIdx
 {
-	using ElementIndexType = FSenseDetectPool::ElementIndexType;
 	explicit FInvalidRemoveIdx(TSparseArray<FSensedStimulus>& In) : PoolRef(In) {}
 	TSparseArray<FSensedStimulus>& PoolRef;
 	FORCEINLINE bool operator()(const ElementIndexType ElemID) const

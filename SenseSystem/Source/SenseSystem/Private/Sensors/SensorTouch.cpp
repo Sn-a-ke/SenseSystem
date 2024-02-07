@@ -133,7 +133,6 @@ void USensorTouch::DrawSensorHUD(const class FViewport* Viewport, const class FS
 
 #endif
 
-/************************************/
 
 void USensorTouch::SetTouchCollision(UPrimitiveComponent* Prim)
 {
@@ -158,7 +157,6 @@ void USensorTouch::SetTouchCollisions(TArray<UPrimitiveComponent*> InTouchCollis
 	TouchCollisions.Shrink();
 }
 
-/************************************/
 
 void USensorTouch::AddTouchCollision(UPrimitiveComponent* InTouchCollision)
 {
@@ -250,7 +248,6 @@ void USensorTouch::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 	}
 }
 
-/************************************/
 
 void USensorTouch::BindHitEvent(UPrimitiveComponent* InTouchCollision)
 {
@@ -295,7 +292,6 @@ void USensorTouch::UnBindHitEvent(TArray<UPrimitiveComponent*> InTouchCollisions
 	}
 }
 
-/************************************/
 
 void USensorTouch::InitializeFromReceiver(USenseReceiverComponent* InSenseReceiver)
 {
@@ -316,13 +312,19 @@ void USensorTouch::InitializeFromReceiver(USenseReceiverComponent* InSenseReceiv
 
 void USensorTouch::LostCurrentSensed()
 {
-	ForceLostCurrentSensed(DetectDepth, true);
+	for (const FChannelSetup& Ch : ChannelSetup)
+	{
+		Ch.EmptyUpdate(DetectDepth, true);
+	}
 }
 void USensorTouch::UpdateNeedLost()
 {
 	for (auto It : NeedLost)
 	{
-		ForceLostSensedStimulus(It);
+		for (const FChannelSetup& Ch : ChannelSetup)
+		{
+			Ch.EmptyUpdate(DetectDepth, true);
+		}
 	}
 	NeedLost.Empty();
 	SensorTimer.ContinueTimer();

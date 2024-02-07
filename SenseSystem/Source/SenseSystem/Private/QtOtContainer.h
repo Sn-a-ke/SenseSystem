@@ -41,7 +41,7 @@ public:
 	virtual ~IContainerTree() = default;
 	using Real = FVector::FReal;
 	using TreeIndexType = int32;
-	using ElementIndexType = int32;
+	using ElementIndexType = FSenseSystemModule::ElementIndexType;
 
 	template<typename IndexType = ElementIndexType>
 	static constexpr ElementIndexType MaxIndex()

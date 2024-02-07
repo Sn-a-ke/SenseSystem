@@ -21,9 +21,7 @@ public:
 	virtual ~UPassiveSensor() override;
 
 	virtual void BeginDestroy() override;
-
-	virtual ElementIndexType ReportPassiveEvent(class USenseStimulusBase* StimulusComponent) { return ReportSenseStimulusEvent(StimulusComponent); }
-	virtual void ReportPassiveEvent(const USensorBase::ElementIndexType StimulusID) { ReportSenseStimulusEvent(StimulusID); }
+	virtual void ReportPassiveEvent(class USenseStimulusBase* StimulusComponent) { ReportSenseStimulusEvent(StimulusComponent); }
+	virtual void ReportPassiveEvent(const FSenseSystemModule::ElementIndexType StimulusID) { ReportSenseStimulusEvent(StimulusID); }
 	virtual bool IsOverrideSenseState() const override { return false; }
-
 };
