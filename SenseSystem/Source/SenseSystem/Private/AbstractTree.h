@@ -26,21 +26,53 @@
 #endif
 
 
+/* Vector 2d-3d conversion Vector2dFrom3d, Vector3dFrom2d */
 namespace TreeHelper
 {
-	template<uint32 DimensionSize>
-	static constexpr uint32 Pow2()
+	using namespace UE::Math;
+
+	template<uint32 InSize>
+	struct FVectorSpace
 	{
-		return 1U << DimensionSize;
+		FVectorSpace() {}
+		static constexpr int32 Size = InSize;
+		static constexpr int32 GetInt32 = static_cast<uint32>(Size);
+		static constexpr bool IsEqual(uint32 Value) { return Size == Value; }
+		static constexpr uint32 SubTravelNum()
+		{
+			if constexpr (IsEqual(1))
+			{
+				return 2;
+			}
+			if constexpr (IsEqual(2))
+			{
+				return 4;
+			}
+			if constexpr (IsEqual(3))
+			{
+				return 8;
+			}
+			checkNoEntry();
+			return 0;
+		}
+	};
+
+	static FORCEINLINE FVector2D Vector2dFrom3d(const FVector& V)
+	{
+		return FVector2D{V.X, V.Y};
+	}
+	static FORCEINLINE FVector Vector3dFrom2d(const FVector2D& V, FVector::FReal Val = 0.0)
+	{
+		return FVector{V.X, V.Y, Val};
 	}
 
 	static FORCEINLINE FBox2D ToBox2D(const FBox& InBox)
 	{
-		return FBox2D(FVector2D(InBox.Min), FVector2D(InBox.Max));
+		return FBox2D(FVector2D(InBox.Min[0], InBox.Min[1]), FVector2D(InBox.Max[0], InBox.Max[1]));
 	}
 	static FORCEINLINE FBox ToBox(const FBox2D& InBox)
 	{
-		return FBox(FVector(InBox.Min.X, InBox.Min.Y, 0.f), FVector(InBox.Max.X, InBox.Max.Y, 0.f));
+		return FBox(FVector(InBox.Min[0], InBox.Min[1], 0), FVector(InBox.Max[0], InBox.Max[1], 0));
 	}
 
 	/*
@@ -84,12 +116,14 @@ namespace TreeHelper
 		// i7: 0111
 	*/
 } // namespace TreeHelper
+using namespace TreeHelper;
 
 /**	Tree Box */
-template<typename PointType, uint32 DimensionSize>
+template<typename PointType, uint32 InVectorSpace>
 struct TTreeBox
 {
 	using Real = typename PointType::FReal;
+	using VSpace = FVectorSpace<InVectorSpace>;
 
 	TTreeBox()
 		: Min(0) //
@@ -97,28 +131,33 @@ struct TTreeBox
 		, Center(0)
 	{}
 	explicit TTreeBox(Real HalfSize)
-		: Min(PointType(-HalfSize, -HalfSize)) //
-		, Max(PointType(HalfSize, HalfSize))
-		, Center((Max + Min) * 0.5)
+		: Min(PointType{-HalfSize, -HalfSize}) //
+		, Max(PointType{HalfSize, HalfSize})
+		, Center((Max + Min) / 2)
 	{}
 	explicit TTreeBox(PointType Point)
 		: Min(Point) //
 		, Max(Point)
 		, Center(Point)
 	{}
-	TTreeBox(PointType InMin, PointType InMax)
-		: Min(InMin) //
-		, Max(InMax)
-		, Center((InMax + InMin) * 0.5)
-	{}
+	TTreeBox(const PointType& InMin, const PointType& InMax)
+	{
+		for (int32 i = 0; i < VSpace::GetInt32; ++i)
+		{
+			min[i] = FMath::Min<Real>(InMin[i], InMax[i]);
+			max[i] = FMath::Max<Real>(InMin[i], InMax[i]);
+		}
+		Center = (InMax + InMin) / 2;
+	}
+
 	TTreeBox(const PointType& Location, Real MinimumQuadSize)
 	{
 		const Real* RESTRICT L = reinterpret_cast<const Real*>(&Location);
-		Real* RESTRICT Mi = reinterpret_cast<Real*>(&Min);
-		Real* RESTRICT Ma = reinterpret_cast<Real*>(&Max);
+		Real* RESTRICT Mi = reinterpret_cast<Real*>(&min);
+		Real* RESTRICT Ma = reinterpret_cast<Real*>(&max);
 		Real* RESTRICT Ce = reinterpret_cast<Real*>(&Center);
 		MinimumQuadSize = FMath::Abs(MinimumQuadSize);
-		for (int32 i = 0; i < DimensionSize; ++i)
+		for (int32 i = 0; i < VSpace::GetInt32; ++i)
 		{
 			const Real Value = L[i] / MinimumQuadSize;
 			int32 Li = FMath::CeilToInt(Value);
@@ -133,7 +172,7 @@ struct TTreeBox
 			{
 				Ma[i] = Li * MinimumQuadSize;
 			}
-			Ce[i] = (Mi[i] + Ma[i]) * 0.5;
+			Ce[i] = (Mi[i] + Ma[i]) / 2;
 		}
 #if WITH_EDITOR
 		checkf(
@@ -144,9 +183,9 @@ struct TTreeBox
 				 "\nLocation =\t\t %s  <="
 				 "\nTTreeBox::Max =\t %s"
 				 "\nMinimumQuadSize = %f"),
-			*PointTypeToString(Min),
+			*PointTypeToString(min),
 			*PointTypeToString(Location),
-			*PointTypeToString(Max),
+			*PointTypeToString(max),
 			MinimumQuadSize);
 #endif
 	}
@@ -156,25 +195,25 @@ struct TTreeBox
 		: TTreeBox(OtherBox.Min, OtherBox.Max)
 	{}
 
-	static FORCEINLINE TTreeBox BuildAABB(PointType Origin, PointType Extent) //
+	static TTreeBox BuildAABB(PointType Origin, PointType Extent) //
 	{
 		return TTreeBox(Origin - Extent, Origin + Extent);
 	}
 
-	PointType Min;
-	PointType Max;
 
-private:
+	PointType min;
+	PointType max;
 	PointType Center;
 
+public:
 #if WITH_EDITOR
 	static FString PointTypeToString(const PointType& In)
 	{
 		FString Out;
-		for (int32 i = 0; i < DimensionSize; ++i)
+		for (int32 i = 0; i < VSpace::GetInt32; ++i)
 		{
 			Out.Append(FString::Printf(TEXT("D_%d = %f"), i, In[i]));
-			if (i != (DimensionSize - 1))
+			if (i != (VSpace::GetInt32 - 1))
 			{
 				Out.Append(FString::Printf(TEXT(", ")));
 			}
@@ -184,107 +223,101 @@ private:
 #endif
 
 public:
-	FORCEINLINE const PointType& GetCenter() const { return Center; }
-	FORCEINLINE PointType GetCenter() { return Center; }
-	FORCEINLINE PointType GetSize() const { return (Max - Min); }
-	FORCEINLINE PointType GetExtent() const { return 0.5f * GetSize(); }
+	FORCEINLINE const PointType& Min() const { return min; }
+	FORCEINLINE const PointType GetCenter() const { return Center; }
+	FORCEINLINE const PointType& Max() const { return max; }
+	FORCEINLINE PointType GetSize() const { return (max - min); }
+	FORCEINLINE PointType GetExtent() const { return GetSize() / 2; }
 
 	FORCEINLINE bool IsInside(const PointType& TestPoint) const
 	{
-		const Real* RESTRICT P = reinterpret_cast<const Real*>(&TestPoint);
-		const Real* RESTRICT Mi = reinterpret_cast<const Real*>(&Min);
-		const Real* RESTRICT Ma = reinterpret_cast<const Real*>(&Max);
-		for (int32 i = 0; i < DimensionSize; ++i)
+		for (int32 i = 0; i < VSpace::GetInt32; ++i)
 		{
-			if (P[i] <= Mi[i] || P[i] > Ma[i])
+			if (TestPoint[i] <= min[i] || TestPoint[i] > max[i])
 			{
 				return false;
 			}
 		}
 		return true;
 	}
+	FORCEINLINE bool IsInside(const TTreeBox& Box) const { return (IsInside(Box.Min()) && IsInside(Box.Max())); }
 
-	FORCEINLINE bool IsInside(const TTreeBox& Box) const { return (IsInside(Box.Min) && IsInside(Box.Max)); }
 	FORCEINLINE bool IsIntersect(const PointType& BoxMin, const PointType& BoxMax) const
 	{
-		const Real* RESTRICT MiB = reinterpret_cast<const Real*>(&BoxMin);
-		const Real* RESTRICT MaB = reinterpret_cast<const Real*>(&BoxMax);
-		const Real* RESTRICT Mi = reinterpret_cast<const Real*>(&Min);
-		const Real* RESTRICT Ma = reinterpret_cast<const Real*>(&Max);
-		for (int32 i = 0; i < DimensionSize; ++i)
+		for (int32 i = 0; i < VSpace::GetInt32; ++i)
 		{
-			if (Mi[i] >= MaB[i] && MiB[i] > Ma[i])
+			if (min[i] >= BoxMax[i] && BoxMin[i] > max[i])
 			{
 				return false;
 			}
 		}
 		return true;
 	}
-	FORCEINLINE bool IsIntersect(const TTreeBox& Box) const { return IsIntersect(Box.Min, Box.Max); }
+	FORCEINLINE bool IsIntersect(const TTreeBox& Box) const { return IsIntersect(Box.Min(), Box.Max()); }
 
-	FORCEINLINE bool operator==(const TTreeBox& Box) const { return Min == Box.Min && Max == Box.Max; }
+	FORCEINLINE bool operator==(const TTreeBox& Box) const { return min == Box.Min() && max == Box.Max(); }
 	FORCEINLINE bool operator!=(const TTreeBox& Box) const { return !(*this == Box); }
 	friend FArchive& operator<<(FArchive& Ar, TTreeBox& In)
 	{
-		Ar << In.Min;
-		Ar << In.Max;
+		Ar << In.min;
+		Ar << In.max;
 		Ar << In.Center;
 		return Ar;
 	}
 
 	FORCEINLINE operator PointType() const { return GetCenter(); }
 
-	FORCEINLINE bool SphereAABBIntersection(const PointType& SphereCenter, const Real RSquared) const
+	FORCEINLINE bool SphereAABBIntersection(const PointType& SphereCenter, const Real Radius) const
 	{
-		const Real* RESTRICT C = reinterpret_cast<const Real*>(&SphereCenter);
-		const Real* RESTRICT Mi = reinterpret_cast<const Real*>(&Min);
-		const Real* RESTRICT Ma = reinterpret_cast<const Real*>(&Max);
-
-		Real DistSquared = 0.0;
-		for (int32 i = 0; i < DimensionSize; ++i)
+		Real Dist = 0.0;
+		for (int32 i = 0; i < VSpace::GetInt32; ++i)
 		{
-			if (C[i] < Mi[i])
+			if (SphereCenter[i] < min[i])
 			{
-				DistSquared += FMath::Square(C[i] - Mi[i]);
+				Dist += SphereCenter[i] - min[i];
 			}
-			else if (C[i] > Ma[i])
+			else if (SphereCenter[i] > max[i])
 			{
-				DistSquared += FMath::Square(C[i] - Ma[i]);
+				Dist += SphereCenter[i] - max[i];
 			}
 		}
-		return DistSquared <= RSquared;
+		return Dist <= Radius;
 	}
 
-	// ue4 Box
 	FORCEINLINE operator FBox2D() const
 	{
-		IF_CONSTEXPR(DimensionSize == 2U)
+		/*
+		//if (VSpace::Size == 1U)
+		//{
+		//	return FBox2D(min, max);
+		//}
+		*/
+		if (VSpace::Size == 2U)
 		{
-			return FBox2D(Min, Max);
+			return FBox2D(min, max);
 		}
-		IF_CONSTEXPR(DimensionSize != 2U)
+		if (VSpace::Size == 3U)
 		{
-			static_assert(DimensionSize > 1, "DimensionSize <= 1");
-			return FBox2D(FVector2D(Min[0], Min[1]), FVector2D(Max[0], Max[1]));
+			return FBox2D(FVector2D{min[0], min[1]}, FVector2D{max[0], max[1]});
 		}
 		checkNoEntry();
-		UE_ASSUME(0);
+		return FBox2D();
 	}
 	FORCEINLINE operator FBox() const
 	{
-		IF_CONSTEXPR(DimensionSize == 3U)
+		if (VSpace::Size == 3U)
 		{
-			return FBox(Min, Max);
+			return FBox(min, max);
 		}
-		IF_CONSTEXPR(DimensionSize == 2U)
+		if (VSpace::Size == 2U)
 		{
-			return FBox(FVector(Min[0], Min[1], 0), FVector(Max[0], Max[1], 0));
+			return FBox(FVector{min[0], min[1], 0}, FVector{max[0], max[1], 0});
 		}
 		checkNoEntry();
-		UE_ASSUME(0);
+		return FBox();
 	}
-	//end  ue4 Box
 };
+
 
 
 /**	Tree Node */
@@ -292,20 +325,19 @@ template<
 	typename TreeElementIdxType, // Element Idx in Element pool
 	typename IndexQtType,		 // Tree Idx in Tree pool
 	typename PointType,			 // PointType = Vector[n]
-	uint32 DimensionSize = 3U,	 // Vector[DimensionSize]
+	uint32 VectorSpace = 3U,	 // Vector[VectorSpace]
 	int32 InlineNodeNum = 36>	 // --
 class TTreeNode
 {
 public:
-	static constexpr IndexQtType MaxIndexQt = TNumericLimits<IndexQtType>::Max();
-	static constexpr int32 SubNodesNum = TreeHelper::Pow2<DimensionSize>();
+	using VSpace = FVectorSpace<VectorSpace>;
 
-	static_assert(SubNodesNum > 0, "Error TTreeNode SubNodesNum == 0 !");
-	static_assert(DimensionSize > 1U && DimensionSize < 4U, "TTreeNode: DimensionSize error");
+	static constexpr IndexQtType MaxIndexQt = TNumericLimits<IndexQtType>::Max();
+	static constexpr int32 SubNodesNum = VSpace::SubTravelNum();
 
 	using Real = typename PointType::FReal;
 	using ElementNodeType = TreeElementIdxType;
-	using BoxType = TTreeBox<PointType, DimensionSize>;
+	using BoxType = TTreeBox<PointType, VectorSpace>;
 
 	TTreeNode() : SubNodes(TStaticArray<IndexQtType, SubNodesNum>(InPlace, MaxIndexQt)), TreeBox(0) {}
 	TTreeNode(IndexQtType InParent, const BoxType& Box) //
@@ -388,7 +420,7 @@ public:
 		return GetIDByPos(BoxCenter, P);
 	}
 
-	uint8 GetQuads(const BoxType& InBox) const
+	uint8 GetQuads(const BoxType& Box) const
 	{
 		uint8 QuadNames = 0;
 
@@ -397,11 +429,11 @@ public:
 #endif
 
 		/*
-		//example DimensionSize = 4
-		//QuadNames |= GetIDByPos_t(BoxCenter, PointType(InBox.Max));
-		//QuadNames |= GetIDByPos_t(BoxCenter, PointType(InBox.Min));
-		//QuadNames |= GetIDByPos_t(BoxCenter, PointType(InBox.Max[0], InBox.Min[1]));
-		//QuadNames |= GetIDByPos_t(BoxCenter, PointType(InBox.Min[0], InBox.Max[1]));
+		//example VectorSpace = 4
+		//QuadNames |= GetIDByPos_t(BoxCenter, PointType(InBox.Max()));
+		//QuadNames |= GetIDByPos_t(BoxCenter, PointType(InBox.Min()));
+		//QuadNames |= GetIDByPos_t(BoxCenter, PointType(InBox.Max()[0], InBox.Min()[1]));
+		//QuadNames |= GetIDByPos_t(BoxCenter, PointType(InBox.Min()[0], InBox.Max()[1]));
 		
 		     Max  Max    Min   Min
 		   .  X  .  Y  .  X  .  Y
@@ -417,21 +449,16 @@ public:
 		*/
 
 		const auto BoxCenter = GetTreeBox().GetCenter();
-		const Real* RESTRICT Mi = reinterpret_cast<const Real*>(&InBox.Min);
-		const Real* RESTRICT Ma = reinterpret_cast<const Real*>(&InBox.Max);
-
 		for (int32 i = 0; i < SubNodesNum; ++i)
 		{
-			PointType V;
-			Real* const RESTRICT v = reinterpret_cast<Real*>(&V);
-
-			for (int32 j = 0; j < DimensionSize; ++j)
+			PointType v = PointType();
+			for (int32 j = 0; j < VSpace::GetInt32; ++j)
 			{
 				v[j] = ((i >> j) & 1) //
-					? Mi[j]
-					: Ma[j];
+					? Box.Min()[j]
+					: Box.Max()[j];
 			}
-			QuadNames |= GetIDByPos(BoxCenter, V);
+			QuadNames |= GetIDByPos(BoxCenter, v);
 		}
 
 		return QuadNames;
@@ -439,14 +466,14 @@ public:
 
 	static uint8 GetIDByPos(const PointType& Center, const PointType& Pos)
 	{
-		//https://en.wikipedia.org/wiki/Z-order_curve
 		uint8 BitIdx = 0;
 		auto Delta = Pos - Center;
 		const Real* RESTRICT d = reinterpret_cast<const Real*>(&Delta);
-		for (int32 i = DimensionSize - 1; i >= 0; --i)
+
+		for (int32 i = VSpace::GetInt32 - 1; i >= 0; --i)
 		{
 			BitIdx = BitIdx << 1;
-			if (d[i] < 0.0)
+			if (Delta[i] < 0.0)
 			{
 				BitIdx |= 1;
 			}
@@ -462,12 +489,15 @@ template<
 	typename PointType,				   //
 	typename ElementIndexType = int32, //
 	typename IndexQtType = int32,	   //
-	uint32 DimensionSize = 2U>		   //
+	uint32 VectorSpace = 3U>		   //
 class TTree_Base
 {
+private:
+	using VSpace = FVectorSpace<VectorSpace>;
+
 public:
 	static constexpr uint32 InlineAllocatorSize =									 //
-		(DimensionSize == 2U)														 //
+		(VSpace::Size == 2U)														 //
 		? (std::is_same_v<IndexQtType, uint32> || std::is_same_v<IndexQtType, int32> //
 			   ? 28U
 			   : (std::is_same_v<IndexQtType, uint16> ? 36U : 0U))					 //
@@ -476,12 +506,13 @@ public:
 			   : (std::is_same_v<IndexQtType, uint16> ? 24U : 0U));
 
 	using TreeElementIdxType = ElementIndexType;
-	using TreeNodeType = TTreeNode<TreeElementIdxType, IndexQtType, PointType, DimensionSize, InlineAllocatorSize>;
+	using TreeNodeType = TTreeNode<TreeElementIdxType, IndexQtType, PointType, VSpace::Size, InlineAllocatorSize>;
 	using BoxType = typename TreeNodeType::BoxType;
 	using Real = typename PointType::FReal;
 
 	static constexpr IndexQtType MaxIndexQt = TreeNodeType::MaxIndexQt;
-	static constexpr int32 SubNodesNum = TreeNodeType::SubNodesNum;
+
+	static constexpr int32 SubNodesNum = VSpace::SubTravelNum();
 
 private:
 	/** Tree Data */
@@ -525,21 +556,16 @@ protected:
 	TSparseArray<ElementType> ElementPool;
 
 public:
-	// tree
 	FORCEINLINE bool IsValidTreeIdx(IndexQtType TreeIdx) const { return TreeIdx != MaxIndexQt; }
 	FORCEINLINE const BoxType& GetTreeBox(IndexQtType TreeIdx) const { return Pool[static_cast<int32>(TreeIdx)].GetTreeBox(); }
 	FORCEINLINE BoxType& GetTreeBox(IndexQtType TreeIdx) { return Pool[static_cast<int32>(TreeIdx)].GetTreeBox(); }
 	FORCEINLINE int32 NumTreeNodes() { return Pool.Num(); }
-	// end tree
 
-	// root
 	FORCEINLINE IndexQtType GetRoot() const { return Root; };
 	FORCEINLINE bool IsValidRoot() const { return IsValidTreeIdx(GetRoot()); }
 	FORCEINLINE const BoxType& GetRootBox() const { return GetTreeBox(GetRoot()); }
 	FORCEINLINE BoxType GetRootBox() { return GetTreeBox(GetRoot()); }
-	// end root
 
-	// element
 	FORCEINLINE TSparseArray<ElementType>& GetElementPool() { return ElementPool; }
 	FORCEINLINE const TSparseArray<ElementType>& GetElementPool() const { return ElementPool; }
 	FORCEINLINE int32 NumElements() { return ElementPool.Num(); }
@@ -754,7 +780,6 @@ public:
 			GetElementBox(ObjID) = New;
 
 #if WITH_EDITOR
-			FPlatformMisc::MemoryBarrier();
 			const IndexQtType CheckQtID = GetElementTreeID(ObjID);
 			const auto& Check = GetElementBox(ObjID);
 			check(CheckQtID != MaxIndexQt);
@@ -962,8 +987,8 @@ public:
 
 	// clang-format off
 	
-	template<uint32 Dim = DimensionSize>
-	std::enable_if_t<Dim == 2, void> DrawTree(
+	template<uint32 VSpace = VectorSpace>
+	std::enable_if_t<VSpace == 2, void> DrawTree(
 		const UWorld* World,
 		const float LifeTime,
 		const FColor Color_1, const float Thickness_1, const uint8 DepthPriority_1,
@@ -974,7 +999,7 @@ public:
 #if WITH_EDITORONLY_DATA && ENABLE_DRAW_DEBUG
 		if (Root != MaxIndexQt)
 		{
-			DrawTree_Recursive<Dim>(
+			DrawTree_Recursive<VSpace>(
 				Root, World, DrawHeight, LifeTime, 
 				Color_1, Thickness_1, DepthPriority_1, 
 				Color_2, Thickness_2, DepthPriority_2,
@@ -983,8 +1008,8 @@ public:
 #endif
 	}
 
-	template<uint32 Dim = DimensionSize>
-	std::enable_if_t<Dim == 3, void> DrawTree(
+	template<uint32 VSpace = VectorSpace>
+	std::enable_if_t<VSpace == 3, void> DrawTree(
 		const UWorld* World,
 		const float LifeTime,
 		const FColor Color_1, const float Thickness_1, const uint8 DepthPriority_1,
@@ -994,7 +1019,7 @@ public:
 #if WITH_EDITORONLY_DATA && ENABLE_DRAW_DEBUG
 		if (Root != MaxIndexQt)
 		{
-			DrawTree_Recursive<Dim>(
+			DrawTree_Recursive<VSpace>(
 				Root, World, LifeTime, 
 				Color_1, Thickness_1, DepthPriority_1, 
 				Color_2, Thickness_2, DepthPriority_2, 
@@ -1084,20 +1109,20 @@ private:
 	{
 		//checkNoRecursion();
 
-		Real* const RESTRICT MiB = reinterpret_cast<Real*>(&Box.Min);
-		Real* const RESTRICT MaB = reinterpret_cast<Real*>(&Box.Max);
+		Real* const RESTRICT MiB = reinterpret_cast<Real* const>(&Box.min);
+		Real* const RESTRICT MaB = reinterpret_cast<Real* const>(&Box.max);
 
 		while (Pool[Self_ID].Num() > 0)
 		{
 			const TreeNodeType& SelfNode = Pool[Self_ID];
 			const auto& SelfBox = SelfNode.GetTreeBox();
 
-			const Real* RESTRICT Mi = reinterpret_cast<const Real*>(&SelfBox.Min);
-			const Real* RESTRICT Ma = reinterpret_cast<const Real*>(&SelfBox.Max);
+			const Real* RESTRICT Mi = reinterpret_cast<const Real*>(&SelfBox.min);
+			const Real* RESTRICT Ma = reinterpret_cast<const Real*>(&SelfBox.max);
 
-			for (int32 i = 0; i < DimensionSize; ++i)
+			for (int32 i = 0; i < VSpace::GetInt32; ++i)
 			{
-				MiB[i] = FMath::Max(Mi[i], MiB[i]);
+				MiB[i] = FMath::Max(Mi[i], MiB[i]); //todo: ??? owerride  Box.Min Box.Max
 				MaB[i] = FMath::Min(Ma[i], MaB[i]);
 			}
 
@@ -1149,7 +1174,7 @@ private:
 			{
 				GetElementBox(ObjID) = New;
 				Split(Self_ID);
-				FPlatformMisc::MemoryBarrier();
+				
 				return GetElementTreeID(ObjID);
 			}
 			return Self_ID;
@@ -1198,7 +1223,7 @@ private:
 			{
 				Pool.Reserve(Pool.Num() + 64);
 			}
-			FPlatformMisc::MemoryBarrier();
+
 			CreateChildLeaves(Pool[Self_ID]);
 		}
 
@@ -1234,8 +1259,6 @@ private:
 			{
 				Pool.Reserve(Pool.Num() + 8 * SubNodesNum);
 			}
-			FPlatformMisc::MemoryBarrier();
-
 			TreeNodeType& SelfNode = Pool[Self_ID];
 
 			const auto& Box = SelfNode.GetTreeBox();
@@ -1248,12 +1271,10 @@ private:
 
 				const Real* RESTRICT QtBc = reinterpret_cast<const Real*>(&QuadTreeBoxCenter);
 				const Real* RESTRICT InBc = reinterpret_cast<const Real*>(&InBoxCenter);
-				const Real* RESTRICT MiB = reinterpret_cast<const Real*>(&Box.Min);
-				const Real* RESTRICT MaB = reinterpret_cast<const Real*>(&Box.Max);
 
-				for (int32 i = 0; i < DimensionSize; ++i)
+				for (int32 i = 0; i < VSpace::GetInt32; ++i)
 				{
-					Bc[i] = (InBc[i] <= QtBc[i]) ? MiB[i] : MaB[i];
+					Bc[i] = (InBc[i] <= QtBc[i]) ? Box.Min()[i] : Box.Max()[i];
 				}
 			}
 
@@ -1285,7 +1306,7 @@ private:
 			{
 				PointType HelP = HalfExtent;
 				Real* const RESTRICT h = reinterpret_cast<Real*>(&HelP);
-				for (int32 j = 0; j < DimensionSize; ++j)
+				for (int32 j = 0; j < VSpace::GetInt32; ++j)
 				{
 					if (1 & (i >> j))
 					{
@@ -1400,8 +1421,6 @@ private:
 					Pool[LeafId].ContainsCount = 0;
 					Pool[LeafId].Nodes.Empty();
 					EmptyLeaves_Recursive(LeafId, false);
-
-					FPlatformMisc::MemoryBarrier();
 
 					Pool.RemoveAt(LeafId);
 					SelfNode.SubNodes[i] = MaxIndexQt;
@@ -1744,7 +1763,7 @@ private:
 
 	// clang-format off
 	
-	template<uint32 Dim = DimensionSize>
+	template<uint32 Dim = VectorSpace>
 	std::enable_if_t<Dim == 2, void> DrawTree_Recursive(
 		const IndexQtType Self_ID,
 		const UWorld* World,
@@ -1763,7 +1782,7 @@ private:
 			if (TreeRef.Parent == MaxIndexQt)
 			{
 				const auto& B = TreeRef.GetTreeBox();
-				const FBox2D DrawBox = FBox2D(B.Min, B.Max);
+				const FBox2D DrawBox = FBox2D(B.min, B.max);
 				DrawBorderBox2D(World, DrawBox, DrawHeight, FColor::Red, DepthPriority_1, Thickness_1 * 2.f, LifeTime);
 			}
 			if (!TreeRef.IsLeaf())
@@ -1772,9 +1791,9 @@ private:
 				const FVector2D Cen = Box.GetCenter();
 
 				DrawDebugLine(
-					World, FVector(Cen.X, Box.Max.Y, DrawHeight), FVector(Cen.X, Box.Min.Y, DrawHeight), Color_1, false, LifeTime, DepthPriority_1, Thickness_1);
+					World, FVector(Cen.X, Box.max.Y, DrawHeight), FVector(Cen.X, Box.min.Y, DrawHeight), Color_1, false, LifeTime, DepthPriority_1, Thickness_1);
 				DrawDebugLine(
-					World, FVector(Box.Max.X, Cen.Y, DrawHeight), FVector(Box.Min.X, Cen.Y, DrawHeight), Color_1, false, LifeTime, DepthPriority_1, Thickness_1);
+					World, FVector(Box.max.X, Cen.Y, DrawHeight), FVector(Box.min.X, Cen.Y, DrawHeight), Color_1, false, LifeTime, DepthPriority_1, Thickness_1);
 			}
 			{
 				const FString Str = FString::Printf(TEXT("Total: %d , Nodes : %d"), TreeRef.Num(), TreeRef.Nodes.Num());
@@ -1794,7 +1813,7 @@ private:
 					}
 					else
 					{
-						DrawBox = FBox2D(NodeBox2D.Min, NodeBox2D.Max);
+						DrawBox = FBox2D(NodeBox2D.min, NodeBox2D.max);
 					}
 					DrawBorderBox2D(World, DrawBox, DrawHeight, Color_2, DepthPriority_2, Thickness_2, LifeTime);
 
@@ -1820,7 +1839,7 @@ private:
 #endif
 	}
 
-	template<uint32 Dim = DimensionSize>
+	template<uint32 Dim = VectorSpace>
 	std::enable_if_t<Dim == 3, void> DrawTree_Recursive(
 		const IndexQtType Self_ID,
 		const UWorld* World,

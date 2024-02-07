@@ -123,7 +123,7 @@ class SENSESYSTEM_API FSenseSys_QuadTree final : public IContainerTree
 private:
 	using ElementIndexType = IContainerTree::ElementIndexType;
 	using TreeIndexType = IContainerTree::TreeIndexType;
-	using TreeType = TTree_Base<FSensedStimulus, FVector2D, ElementIndexType, TreeIndexType, 2>;
+	using TreeType = TTree_Base<FSensedStimulus, FVector2D, ElementIndexType, TreeIndexType, 2U>;
 	TreeType Tree;
 
 	virtual TSparseArray<FSensedStimulus>& GetCompDataPool() override { return Tree.GetElementPool(); }
@@ -173,14 +173,14 @@ private:
 		FInRadiusPredicate(const TreeType& InTree, const FVector& InCenter, const Real InRadius, const FBox2D& InBox, const uint64 InBitChannels = MAX_uint64)
 			: Tree(InTree)
 			, Center(InCenter)
-			, RSquared(InRadius * InRadius)
+			, Radius(InRadius)
 			, Box(InBox)
 			, BitChannels(InBitChannels)
 		{}
 		FInRadiusPredicate(const TreeType& InTree, const FVector& InCenter, const Real InRadius, const uint64 InBitChannels = MAX_uint64)
 			: Tree(InTree)
 			, Center(InCenter)
-			, RSquared(InRadius * InRadius)
+			, Radius(InRadius)
 			, Box(FBox2D(FVector2D(Center.X - InRadius, Center.Y - InRadius), FVector2D(Center.X + InRadius, Center.Y + InRadius)))
 			, BitChannels(InBitChannels)
 		{}
@@ -188,12 +188,12 @@ private:
 		FORCEINLINE bool operator()(const ElementIndexType ObjID) const
 		{
 			const auto& B = Tree.GetElementBox(ObjID);
-			return B.IsIntersect(Box.Min, Box.Max) && B.SphereAABBIntersection(Center, RSquared) && (BitChannels & Tree.GetElement(ObjID).BitChannels);
+			return B.IsIntersect(Box.Min, Box.Max) && B.SphereAABBIntersection(Center, Radius) && (BitChannels & Tree.GetElement(ObjID).BitChannels);
 		}
 
 		const TreeType& Tree;
 		const FVector2D Center;
-		const Real RSquared;
+		const Real Radius;
 		const FBox2D Box;
 		const uint64 BitChannels;
 	};
@@ -221,7 +221,7 @@ class SENSESYSTEM_API FSenseSys_OcTree final : public IContainerTree
 private:
 	using ElementIndexType = IContainerTree::ElementIndexType;
 	using TreeIndexType = IContainerTree::TreeIndexType;
-	using TreeType = TTree_Base<FSensedStimulus, FVector, ElementIndexType, TreeIndexType, 3>;
+	using TreeType = TTree_Base<FSensedStimulus, FVector, ElementIndexType, TreeIndexType, 3U>;
 	TreeType Tree;
 
 	virtual TSparseArray<FSensedStimulus>& GetCompDataPool() override { return Tree.GetElementPool(); }

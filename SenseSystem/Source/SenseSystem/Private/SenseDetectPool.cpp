@@ -184,15 +184,11 @@ void FSenseDetectPool::NewSensed(const EOnSenseEvent Ost, const bool bNewSenseFo
 	{
 		Algo::Sort(DetectNew, SortPred);
 
-		FPlatformMisc::MemoryBarrier();
-
 		NewCurrent = DetectNew;
 		NewCurrent.Append(DetectCurrent);
 		Algo::Sort(NewCurrent, SortPred);
 
 		BestScoreUpdt(NewCurrent, bNewSenseForcedByBestScore);
-
-		FPlatformMisc::MemoryBarrier();
 
 		ArraySorted::ArrayMinusArray_SortedPredicate(DetectNew, NewCurrent, SortPred);
 

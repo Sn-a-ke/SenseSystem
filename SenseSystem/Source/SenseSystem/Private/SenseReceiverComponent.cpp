@@ -209,19 +209,16 @@ void USenseReceiverComponent::Cleanup()
 void USenseReceiverComponent::TickComponent(const float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	checkSlow(bEnableSenseReceiver);
-	if (const auto SM = GetSenseManager())
+	if (const auto SenseManagerPtr = GetSenseManager())
 	{
 		for (uint8 i = 1; i < 4; i++) //iterate all
 		{
 			const TArray<USensorBase*> SensorsArr = GetSensorsByType(static_cast<ESensorType>(i));
 			for (USensorBase* const It : SensorsArr)
 			{
-				if (LIKELY(It))
+				if (It != nullptr && SenseManagerPtr->IsHaveStimulusTag(It->SensorTag))
 				{
-					if (SM->IsHaveStimulusTag(It->SensorTag))
-					{
-						It->TickSensor(DeltaTime);
-					}
+					It->TickSensor(DeltaTime);
 				}
 			}
 		}
@@ -330,7 +327,7 @@ TArray<AActor*> USenseReceiverComponent::GetTrackTargetActors() const
 	Out.Reserve(TrackTargetComponents.Num());
 	for (const USenseStimulusBase* It : TrackTargetComponents)
 	{
-		if (LIKELY(IsValid(It) && IsValid(It->GetOwner())))
+		if (IsValid(It) && IsValid(It->GetOwner()))
 		{
 			Out.Add(It->GetOwner());
 		}
@@ -1046,11 +1043,11 @@ bool USenseReceiverComponent::DestroySensor(const ESensorType Sensor_Type, const
 			Sen->UpdateState = ESensorState::Uninitialized;
 			Sen->ForgetAllSensed();
 			Sen->SensorThreadType = ESensorThreadType::Main_Thread;
-			if (const auto SM = GetSenseManager())
+			if (const auto SenseManagerPtr = GetSenseManager())
 			{
 				const bool bOldContainsThreadCount = bContainsSenseThreadSensors;
 				UpdateContainsSenseThreadSensors();
-				SM->Remove_ReceiverSensor(this, Sen, bOldContainsThreadCount && !bContainsSenseThreadSensors);
+				SenseManagerPtr->Remove_ReceiverSensor(this, Sen, bOldContainsThreadCount && !bContainsSenseThreadSensors);
 			}
 
 			TargetArr.Remove(Sen);

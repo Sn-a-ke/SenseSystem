@@ -281,7 +281,7 @@ void USenseStimulusBase::EndPlay(const EEndPlayReason::Type EndPlayReason)
 	{
 		SetEnableSenseStimulus(false);
 	}
-	FPlatformMisc::MemoryBarrier();
+
 	Cleanup();
 	Super::EndPlay(EndPlayReason);
 }
@@ -564,7 +564,7 @@ bool USenseStimulusBase::UnRegisterSelfSense()
 				GetSenseManager()->UnRegisterSenseStimulus(this);
 			}
 		}
-		FPlatformMisc::MemoryBarrier();
+
 		RemoveFromRoot();
 	}
 
@@ -1304,12 +1304,12 @@ void USenseStimulusBase::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 		{
 			if (const UWorld* World = GetWorld())
 			{
-				if (const auto SM = GetSenseManager())
+				if (const auto SenseManagerPtr = GetSenseManager())
 				{
 					const float PositionUpdateTime = World->GetTimeSeconds();
 					for (auto& It : TagResponse)
 					{
-						if (SM->IsHaveReceiverTag(It.Key)) //todo Event driven bool
+						if (SenseManagerPtr->IsHaveReceiverTag(It.Key)) //todo Event driven bool
 						{
 							const FVector NewLocation = GetSingleSensePoint(It.Key);
 							const TArray<FVector> Points = GetSensePoints(It.Key);

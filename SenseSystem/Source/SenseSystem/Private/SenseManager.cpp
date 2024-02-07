@@ -317,10 +317,7 @@ void USenseManager::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 
-	//static delegate to detect world change
 	FWorldDelegates::OnWorldCleanup.AddUObject(this, &USenseManager::OnWorldCleanup);
-	//FWorldDelegates::OnPostWorldCreation.AddUObject(this, &USenseManager::OnWorldCreated);
-	//FWorldDelegates::OnPostWorldInitialization.AddUObject(this, &USenseManager::OnPostWorldInitialization);
 
 	if (const auto Settings = GetDefault<USenseSysSettings>())
 	{

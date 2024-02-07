@@ -34,6 +34,7 @@ public class SenseSystem : ModuleRules
 
         PrivateDependencyModuleNames.AddRange(new string[]
             {
+                "Core",
                 "CoreUObject",
                 "Engine",
 			});

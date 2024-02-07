@@ -31,7 +31,6 @@ public:
 	TArray<ElementIndexType> NewCurrent;
 	TArray<ElementIndexType> LostCurrent;
 
-	/**best sensed detection struct*/
 	FTrackBestSenseScore Best_Sense;
 
 	TArray<ElementIndexType> DetectNew;

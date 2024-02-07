@@ -96,9 +96,9 @@ bool FSenseRunnable::UpdateQueue()
 	bool bPop = true;
 	{
 		USensorBase* const Sensor = Queue.Peek();
-		if (LIKELY(IsValid(Sensor) && Sensor->IsValidForTest_Short()))
+		if (IsValid(Sensor) && Sensor->IsValidForTest_Short())
 		{
-			if (LIKELY(Sensor->UpdateState.Get() == ESensorState::ReadyToUpdate))
+			if (Sensor->UpdateState.Get() == ESensorState::ReadyToUpdate)
 			{
 				bPop = Sensor->UpdateSensor();
 			}
@@ -110,7 +110,7 @@ bool FSenseRunnable::UpdateQueue()
 		}
 	}
 
-	if (LIKELY(bPop))
+	if (bPop)
 	{
 		Queue.Pop();
 		Counter++;
