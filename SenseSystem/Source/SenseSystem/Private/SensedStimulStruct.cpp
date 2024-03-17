@@ -26,13 +26,12 @@ FBox FSensedStimulus::Init(
 		const TArray<FVector> Points = StimulusComponent->GetSensePoints(SensorTag);
 		SensedPoints.Reserve(Points.Num() + 1);
 		SensedPoints.Add(P0);
-		for (const auto& V : Points)
+		for (const FVector& V : Points)
 		{
 			NewBox += V;
 			SensedPoints.Add(FSensedPoint(V, Score));
 		}
 		return NewBox;
 	}
-	//InValidate();
 	return FBox();
 }

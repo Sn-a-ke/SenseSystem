@@ -541,13 +541,10 @@ bool USenseStimulusBase::UnRegisterSelfSense()
 	{
 		bRegisteredForSense = false;
 		SetComponentTickEnabled(false);
-
-		if (const auto OwnerActor = GetOwner())
+		const auto OwnerActor = GetOwner();
+		if (OwnerActor && OwnerActor->GetRootComponent())
 		{
-			if (const auto Root = OwnerActor->GetRootComponent())
-			{
-				Root->TransformUpdated.RemoveAll(this);
-			}
+			OwnerActor->GetRootComponent()->TransformUpdated.RemoveAll(this);
 		}
 
 		if (GetSenseManager() != nullptr && GetSenseManager()->HaveSenseStimulus())
@@ -680,36 +677,23 @@ void USenseStimulusBase::RootComponentTransformUpdated(
 
 void USenseStimulusBase::BindTransformUpdated()
 {
-	if (const auto OwnerActor = GetOwner())
+	const auto OwnerActor = GetOwner();
+	if (OwnerActor && OwnerActor->GetRootComponent())
 	{
-		if (const auto Root = OwnerActor->GetRootComponent())
-		{
-			Root->TransformUpdated.AddUObject(this, &USenseStimulusBase::RootComponentTransformUpdated);
-		}
-		else
-		{
-			UE_LOG(
-				LogSenseSys,
-				Error,
-				TEXT(" %s, SenseStimulusBase::BindTransformUpdated: OwnerActor %s dont have a valid RootComponent"),
-				*GetNameSafe(this),
-				*GetNameSafe(OwnerActor))
-		}
+		OwnerActor->GetRootComponent()->TransformUpdated.AddUObject(this, &USenseStimulusBase::RootComponentTransformUpdated);
 	}
 	else
 	{
-		UE_LOG(LogSenseSys, Error, TEXT("%s SenseStimulusBase::BindTransformUpdated: ,  dont have a valid OwnerActor"), *GetNameSafe(this))
+		//UE_LOG(LogSenseSys, Error, TEXT("%s SenseStimulusBase::BindTransformUpdated: ,  dont have a valid OwnerActor"), *GetNameSafe(this))
 	}
 }
 
 void USenseStimulusBase::UnBindTransformUpdated() const
 {
-	if (const auto OwnerActor = GetOwner())
+	const auto OwnerActor = GetOwner();
+	if (OwnerActor && OwnerActor->GetRootComponent())
 	{
-		if (const auto Root = OwnerActor->GetRootComponent())
-		{
-			Root->TransformUpdated.RemoveAll(this);
-		}
+		OwnerActor->GetRootComponent()->TransformUpdated.RemoveAll(this);
 	}
 }
 
@@ -1119,19 +1103,16 @@ void USenseStimulusBase::DrawComponent(const FSceneView* View, FPrimitiveDrawInt
 							TArray<FDrawDT> DrawArr;
 							DrawArr.Reserve(TmpLost.Num());
 
-							for (const auto& ItLost : TmpLost)
+							for (const auto ItLost : TmpLost)
 							{
-								if (ItLost)
+								if (const USenseReceiverComponent* Receiver = USenseSystemBPLibrary::GetReceiverFromActor(ItLost))
 								{
-									if (const USenseReceiverComponent* Receiver = USenseSystemBPLibrary::GetReceiverFromActor(ItLost))
-									{
-										FSensedStimulus SS;
-										ESuccessState Success;
-										Receiver->FindSensedActor(GetOwner(), ESensorType::Active, It.Key, ESensorArrayByType::SenseLost, SS, Success);
+									FSensedStimulus SS;
+									ESuccessState Success;
+									Receiver->FindSensedActor(GetOwner(), ESensorType::Active, It.Key, ESensorArrayByType::SenseLost, SS, Success);
 										if (Success == ESuccessState::Success && ItLost)
-										{
-											DrawArr.Add(FDrawDT(SS.SensedTime, SS.SensedPoints[0].SensedPoint, ItLost->GetActorLocation()));
-										}
+									{
+										DrawArr.Add(FDrawDT(SS.SensedTime, SS.SensedPoints[0].SensedPoint, ItLost->GetActorLocation()));
 									}
 								}
 							}
@@ -1299,11 +1280,11 @@ void USenseStimulusBase::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 
 	if (bEnable && IsRegisteredForSense())
 	{
-		const bool bNeedTick = (Mobility == EStimulusMobility::MovableTick) || (bDirtyTransform && Mobility == EStimulusMobility::MovableOwner);
+	const bool bNeedTick = (Mobility == EStimulusMobility::MovableTick) || (bDirtyTransform && Mobility == EStimulusMobility::MovableOwner);
 		if (bNeedTick)
 		{
 			if (const UWorld* World = GetWorld())
-			{
+	{
 				if (const auto SenseManagerPtr = GetSenseManager())
 				{
 					const float PositionUpdateTime = World->GetTimeSeconds();

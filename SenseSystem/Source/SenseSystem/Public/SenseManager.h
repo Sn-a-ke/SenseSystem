@@ -29,7 +29,7 @@ class UObject;
 /**
 * RegisteredSensorTags struct
 */
-struct SENSESYSTEM_API FRegisteredSensorTags : FNoncopyable
+struct SENSESYSTEM_API FRegisteredSensorTags final : FNoncopyable
 {
 	FRegisteredSensorTags();
 	~FRegisteredSensorTags();
@@ -73,9 +73,9 @@ private:
 * Managing Sense Thread
 */
 UCLASS(BlueprintType, ClassGroup = (SenseSystem))
-class SENSESYSTEM_API USenseManager
+class SENSESYSTEM_API USenseManager final
 	: public UWorldSubsystem
-	, public FTickableGameObject
+	, public FTickableGameObject 
 {
 	GENERATED_BODY()
 public:
@@ -112,7 +112,7 @@ public:
 	bool RequestAsyncSenseUpdate(USensorBase* InSensor, bool bHighPriority) const;
 
 
-	IContainerTree* GetNamedContainerTree(const FName SensorTag) { return RegisteredSensorTags.GetContainerTree(SensorTag); }
+	IContainerTree* const GetNamedContainerTree(const FName SensorTag) { return RegisteredSensorTags.GetContainerTree(SensorTag); }
 	const IContainerTree* GetNamedContainerTree(const FName SensorTag) const { return RegisteredSensorTags.GetContainerTree(SensorTag); }
 
 	UFUNCTION(BlueprintCallable, Category = "QuadTree")

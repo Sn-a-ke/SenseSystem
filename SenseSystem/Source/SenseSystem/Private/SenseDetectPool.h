@@ -13,7 +13,7 @@
 #include "SensedStimulStruct.h"
 using ElementIndexType = FSenseSystemModule::ElementIndexType;
 
-class FSenseDetectPool
+class FSenseDetectPool final
 {
 	TSparseArray<FSensedStimulus> ObjPool;
 public:
@@ -76,19 +76,6 @@ public:
 
 	void Empty();
 
-	friend FArchive& operator<<(FArchive& Ar, FSenseDetectPool& Sd)
-	{
-		//Ar << Sd.ObjPool;
-		//Ar << Sd.Current;
-		//Ar << Sd.Lost;
-		//Ar << Sd.Forget;
-		//Ar << Sd.NewCurrent;
-		//Ar << Sd.LostCurrent;
-		//Ar << Sd.Best_Sense;
-		//Ar << Sd.DetectNew;
-		//Ar << Sd.DetectCurrent;
-		return Ar;
-	}
 
 	template<typename T, typename SortTPredicate>
 	static void BestIdsByPredicate(const int32 Count, const TArray<T>& InArr, SortTPredicate Predicate, TArray<int32>& Out);
@@ -242,7 +229,7 @@ inline void FSenseDetectPool::BestIdsByPredicate(const int32 Count, const TArray
 		if (Count == 1) // O(N)
 		{
 			Out.Init(0, 1);
-			for (int32 i = 1; i < InArrNum; ++i)
+			for (int32 i = 1; i < InArrNum; i++)
 			{
 				if (Predicate(i, Out[0]))
 				{
@@ -253,7 +240,7 @@ inline void FSenseDetectPool::BestIdsByPredicate(const int32 Count, const TArray
 		else
 		{
 			Out.Reset(InArrNum);
-			for (int32 i = 0; i < InArrNum; ++i)
+			for (int32 i = 0; i < InArrNum; i++)
 			{
 				Out.Add(i);
 			}

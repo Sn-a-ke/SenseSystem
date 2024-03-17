@@ -832,7 +832,7 @@ USensorBase* USenseReceiverComponent::CreateNewSensor(
 	const UWorld* World = GetWorld();
 	const bool bPlayWorld = World && World->IsGameWorld() && World->HasBegunPlay() && !World->bIsTearingDown;
 	if (/*bAllowRuntimeSensorCreation &&*/
-		 !IsPendingKill() 
+		IsValid(this)
 		&& bPlayWorld 
 		&& SensorClass != nullptr 
 		&& Sensor_Type != ESensorType::None 
@@ -1101,7 +1101,7 @@ bool USenseReceiverComponent::CheckSensorTestToDefaults(TArray<FSenseSysRestoreO
 						{
 							TArrayView<USensorBase*> SensorsArr = GetSensorsByType(InSensor_Type);
 							TArrayView<USensorBase*> SensorCDO_Arr = DefaultComponent->GetSensorsByType(InSensor_Type);
-							for (int32 j = 0; j < SensorCDO_Arr.Num(); ++j)
+							for (int32 j = 0; j < SensorCDO_Arr.Num(); j++)
 							{
 								if (IsValid(SensorCDO_Arr[j]))
 								{
@@ -1169,7 +1169,7 @@ bool USenseReceiverComponent::CheckSensorTestToDefaults(TArray<FSenseSysRestoreO
 						const ESensorType Sensor_Type = static_cast<ESensorType>(i);
 						TArray<USensorBase*>& SensorsArr = GetSensorsByType(Sensor_Type);
 						TArray<USensorBase*>& DefSensorsArr = DefaultComponent->GetSensorsByType(Sensor_Type);
-						for (int32 j = 0; j < DefSensorsArr.Num(); ++j)
+						for (int32 j = 0; j < DefSensorsArr.Num(); j++)
 						{
 						if (IsValid(DefSensorsArr[j]))
 						{

@@ -90,7 +90,7 @@ bool FSenseRunnable::UpdateQueue()
 		}
 	}
 
-	if (LIKELY(bPop))
+	if (bPop)
 	{
 		Queue.Pop();
 		Counter++;

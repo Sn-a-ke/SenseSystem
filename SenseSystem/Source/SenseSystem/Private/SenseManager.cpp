@@ -255,7 +255,10 @@ void USenseManager::BeginDestroy()
 
 void USenseManager::Add_SenseStimulus(USenseStimulusBase* Ssc, const FName& SensorTag, FStimulusTagResponse& Str)
 {
-	RegisteredSensorTags.Add_SenseStimulus(Ssc, SensorTag, Str);
+	if (Ssc && Ssc->GetWorld() == GetWorld())
+	{
+		RegisteredSensorTags.Add_SenseStimulus(Ssc, SensorTag, Str);
+	}
 }
 void USenseManager::Remove_SenseStimulus(USenseStimulusBase* Ssc, const FName& SensorTag, FStimulusTagResponse& Str)
 {
@@ -317,7 +320,10 @@ void USenseManager::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 
+	//static delegate to detect world change
 	FWorldDelegates::OnWorldCleanup.AddUObject(this, &USenseManager::OnWorldCleanup);
+	//FWorldDelegates::OnPostWorldCreation.AddUObject(this, &USenseManager::OnWorldCreated);
+	//FWorldDelegates::OnPostWorldInitialization.AddUObject(this, &USenseManager::OnPostWorldInitialization);
 
 	if (const auto Settings = GetDefault<USenseSysSettings>())
 	{
@@ -362,7 +368,7 @@ bool USenseManager::UnRegisterSenseStimulus(USenseStimulusBase* Stimulus)
 		const bool bSuccess = RegisteredSensorTags.RemoveSenseStimulus(Stimulus);
 		if (bSuccess)
 		{
-			--StimulusCount;
+			StimulusCount--;
 		}
 
 		SenseThread_DeleteIfNeed();
@@ -386,7 +392,7 @@ bool USenseManager::RegisterSenseReceiver(USenseReceiverComponent* Receiver)
 				if (It)
 				{
 					int32& CountPtr = TagReceiversCount.FindOrAdd(It->SensorTag);
-					++CountPtr;
+					CountPtr++;
 				}
 			}
 		}
@@ -418,7 +424,7 @@ bool USenseManager::UnRegisterSenseReceiver(USenseReceiverComponent* Receiver)
 					if (int32* CountPtr = TagReceiversCount.Find(It->SensorTag))
 					{
 						int32& Count = *CountPtr;
-						--Count;
+						Count--;
 						if (Count == 0)
 						{
 							TagReceiversCount.Remove(It->SensorTag);
@@ -460,13 +466,13 @@ void USenseManager::Add_ReceiverSensor(USenseReceiverComponent* Receiver, USenso
 		{
 			if (bThreadCountUpdt)
 			{
-				++ContainsThreadCount;
+				ContainsThreadCount++;
 				checkSlow(
 					Sensor->SensorThreadType == ESensorThreadType::Sense_Thread || Sensor->SensorThreadType == ESensorThreadType::Sense_Thread_HighPriority)
 			}
 
 			int32& CountPtr = TagReceiversCount.FindOrAdd(Sensor->SensorTag);
-			++CountPtr;
+			CountPtr++;
 
 			SenseThread_CreateIfNeed();
 		}
@@ -480,13 +486,13 @@ void USenseManager::Remove_ReceiverSensor(USenseReceiverComponent* Receiver, USe
 		{
 			if (Sensor->SensorThreadType == ESensorThreadType::Sense_Thread || Sensor->SensorThreadType == ESensorThreadType::Sense_Thread_HighPriority)
 			{
-				--ContainsThreadCount;
+				ContainsThreadCount--;
 			}
 		}
 		if (int32* CountPtr = TagReceiversCount.Find(Sensor->SensorTag))
 		{
 			int32& Count = *CountPtr;
-			--Count;
+			Count--;
 			if (Count == 0)
 			{
 				TagReceiversCount.Remove(Sensor->SensorTag);
@@ -528,12 +534,12 @@ bool USenseManager::RequestAsyncSenseUpdate(USensorBase* InSensor, const bool bH
 		return SenseThread->AddQueueSensors(InSensor, bHighPriority);
 	}
 
-	UE_LOG(
-		LogSenseSys,
-		Error,
-		TEXT("RequestAsyncSenseUpdate Sensor: %s, SensorOwner: %s, SenseThread IsInValid "),
-		*GetNameSafe(InSensor),
-		*GetNameSafe(InSensor->GetSensorOwner()));
+	//UE_LOG(
+	//	LogSenseSys,
+	//	Error,
+	//	TEXT("RequestAsyncSenseUpdate Sensor: %s, SensorOwner: %s, SenseThread IsInValid "),
+	//	*GetNameSafe(InSensor),
+	//	*GetNameSafe(InSensor->GetSensorOwner()));
 
 	return false;
 }
@@ -568,14 +574,14 @@ void USenseManager::OnWorldCleanup(class UWorld* World, bool bSessionEnded, bool
 	if (GetWorld() == World && World->IsGameWorld())
 	{
 		Cleanup();
-		if (!World->bIsTearingDown)
-		{
-			UE_LOG(LogSenseSys, Warning, TEXT("SenseManager::OnWorldCleanup:World: %s, but world not bIsTearingDown"), *GetNameSafe(World));
-		}
-		else
-		{
-			UE_LOG(LogSenseSys, Log, TEXT("SenseManager::OnWorldCleanup:World: %s"), *GetNameSafe(World));
-		}
+		//if (!World->bIsTearingDown)
+		//{
+		//	UE_LOG(LogSenseSys, Warning, TEXT("SenseManager::OnWorldCleanup:World: %s, but world not bIsTearingDown"), *GetNameSafe(World));
+		//}
+		//else
+		//{
+		//	UE_LOG(LogSenseSys, Log, TEXT("SenseManager::OnWorldCleanup:World: %s"), *GetNameSafe(World));
+		//}
 	}
 }
 

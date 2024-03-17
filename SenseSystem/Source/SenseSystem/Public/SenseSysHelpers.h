@@ -14,14 +14,14 @@
 */
 namespace EFPSTime_SenseSys
 {
-	constexpr float fps120 = 0.0083f;
-	constexpr float fps90 = 0.0111f;
-	constexpr float fps60 = 0.0167f;
-	constexpr float fps45 = 0.0222f;
-	constexpr float fps30 = 0.0333f;
-	constexpr float fps24 = 0.0417f;
-	constexpr float fps15 = 0.0667f;
-	constexpr float fps10 = 0.1f;
+	constexpr float fps120 = 1.0 / 120;
+	constexpr float fps90 = 1.0 / 90;
+	constexpr float fps60 = 1.0 / 60;
+	constexpr float fps45 = 1.0 / 45;
+	constexpr float fps30 = 1.0 / 30;
+	constexpr float fps24 = 1.0 / 24;
+	constexpr float fps15 = 1.0 / 15;
+	constexpr float fps10 = 0.1;
 
 }; // namespace EFPSTime_SenseSys
 
@@ -31,10 +31,10 @@ namespace EFPSTime_SenseSys
 UENUM(BlueprintType)
 enum class ESensorType : uint8
 {	
-	None = 0 UMETA(DisplayName = "None"),
-	Active   UMETA(DisplayName = "Active"),
-	Passive  UMETA(DisplayName = "Passive"),
-	Manual   UMETA(DisplayName = "Manual")
+	None = 0,
+	Active, 
+	Passive,
+	Manual,  
 };
 
 /** SuccessState SenseSys */
@@ -50,10 +50,9 @@ UENUM(BlueprintType)
 enum class EDrawDepthSenseSys : uint8
 {
 	/** World scene DPG. */
-	World      UMETA(DisplayName = "World"),
-	
+	World,	
 	/** Foreground scene DPG. */
-	Foreground UMETA(DisplayName = "Foreground")
+	Foreground
 };
 
 /** OnSenseEvent SenseSys */
@@ -70,31 +69,31 @@ enum class EOnSenseEvent : uint8
 UENUM(BlueprintType)
 enum class ESenseTestResult : uint8
 {
-	None    = 0 UMETA(DisplayName = "None"),
-	Sensed  = 1 UMETA(DisplayName = "Sensed"),
-	NotLost = 2 UMETA(DisplayName = "NotLost"),
-	Lost    = 3 UMETA(DisplayName = "Lost"),
+	None    = 0,
+	Sensed  = 1,
+	NotLost = 2, 
+	Lost    = 3
 };
 
 /** SensorArrayByType SenseSys */
 UENUM(BlueprintType)
 enum class ESensorArrayByType : uint8
 {
-	SenseLost        = 0 UMETA(DisplayName = "SenseLost"),
-	SensedNew        = 1 UMETA(DisplayName = "SenseNew"),
-	SenseCurrent     = 2 UMETA(DisplayName = "SenseCurrent"),
-	SenseCurrentLost = 3 UMETA(DisplayName = "SenseCurrentLost"),
-	SenseForget      = 4 UMETA(DisplayName = "SenseForget"),
+	SenseLost        = 0,
+	SensedNew        = 1,
+	SenseCurrent     = 2,
+	SenseCurrentLost = 3,
+	SenseForget      = 4
 };
 
 /** SensorThreadType SenseSys */
 UENUM(BlueprintType)
 enum class ESensorThreadType : uint8
 {
-	Main_Thread               = 0 UMETA(DisplayName = "Main_Thread"),
-	Sense_Thread              = 1 UMETA(DisplayName = "Sense_Thread"),
-	Sense_Thread_HighPriority = 2 UMETA(DisplayName = "Sense_Thread_HighPriority"),
-	Async_Task                = 3 UMETA(DisplayName = "Async_Task"),
+	Main_Thread               = 0,
+	Sense_Thread              = 1,
+	Sense_Thread_HighPriority = 2,
+	Async_Task                = 3
 };
 
 // clang-format on
@@ -199,7 +198,7 @@ struct SENSESYSTEM_API FBitFlag64_SenseSys
 		Ar << Val.Value;
 		return Ar;
 	}
-	
+
 	static uint64 To_64BitFlagChannel(const TArray<uint8>& InChan)
 	{
 		uint64 Out = 0;

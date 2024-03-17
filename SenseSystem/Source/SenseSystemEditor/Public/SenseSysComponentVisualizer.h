@@ -11,7 +11,7 @@ class FSceneView;
 /**
  * 
  */
-class SENSESYSTEMEDITOR_API FSenseSysComponentVisualizer : public FComponentVisualizer
+class SENSESYSTEMEDITOR_API FSenseSysComponentVisualizer final : public FComponentVisualizer
 {
 public:
 	//~ Begin FComponentVisualizer Interface

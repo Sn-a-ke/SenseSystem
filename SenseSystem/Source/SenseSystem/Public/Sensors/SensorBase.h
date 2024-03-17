@@ -326,7 +326,7 @@ public:
 
 	/** Sensor MultiThreading settings */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Sensor")
-	ESensorThreadType SensorThreadType = ESensorThreadType::Sense_Thread;
+	ESensorThreadType SensorThreadType = ESensorThreadType::Main_Thread;
 
 	/** SensorTransform update on GetSensorReadyBP */
 	UPROPERTY(BlueprintReadOnly, Transient, Category = "Sensor")
@@ -378,9 +378,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "SenseSystem|Sensor", meta = (Keywords = "Get Response Channel ID"))
 	int32 GetChannelID(uint8 InChannel = 1) const;
 
+	/** Set Sense Channels */
 	UFUNCTION(BlueprintCallable, Category = "SenseSystem|Sensor", meta = (Keywords = "Set Sense Response Channel"))
 	void SetSenseChannelsBit(FBitFlag64_SenseSys InChannels);
 
+	/** Change Sensor Response Channel */
 	UFUNCTION(BlueprintCallable, Category = "SenseSystem|Sensor", meta = (DisplayName = "SetSenseResponseChannel", Keywords = "Set Sense Response Channel"))
 	void SetSenseResponseChannelBit(uint8 InChannel, bool bEnableChannel);
 
@@ -394,6 +396,7 @@ public:
 		meta = (DisplayName = "SetIgnoreSenseResponseChannel", Keywords = "Set Sense Response Channel"))
 	void SetIgnoreSenseResponseChannelBit(uint8 InChannel, bool bEnableChannel);
 
+	/** Check Sensor Response Channel */
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "SenseSystem|Sensor", meta = (Keywords = "Check Sense Response Channel"))
 	bool CheckResponseChannel(const USenseStimulusBase* StimulusComponent) const;
 
@@ -403,12 +406,15 @@ public:
 	void Remove_SenseChannels(uint64 NewChannels);
 
 
+	/** Switch Enable for this Sensor */
 	UFUNCTION(BlueprintCallable, Category = "SenseSystem|Sensor", meta = (Keywords = "Set Sensor Enable"))
 	void SetEnableSensor(bool bInEnable);
 
+	/** Switch Sensor ThreadType */
 	UFUNCTION(BlueprintCallable, Category = "Sensor", meta = (Keywords = "Set Sensor Thread Type"))
 	void SetSensorThreadType(ESensorThreadType NewSensorThreadType);
 
+	/** Get Sensor Current Transform */
 	UFUNCTION(BlueprintCallable, Category = "SenseSystem|Sensor", meta = (Keywords = "Get Sensor Transform"))
 	const FTransform& GetSensorTransform() const;
 
@@ -591,9 +597,11 @@ public:
 	FStimulusFindResult FindStimulusInAllState_SingleChannel(const USenseStimulusBase* StimulusComponent, uint8 InChannel = 1); //todo bug?
 
 
+	/** Fast binary search actor in array_by_SenseState */
 	UFUNCTION(BlueprintCallable, BlueprintPure = false, Category = "SenseSystem|Sensor", meta = (Keywords = "Find Contains Component"))
 	bool ContainsActor(const AActor* Actor, ESensorArrayByType SenseState, uint8 InChannel = 1) const;
 
+	/**fast binary search component in array_by_SenseState*/
 	UFUNCTION(BlueprintCallable, BlueprintPure = false, Category = "SenseSystem|Sensor", meta = (Keywords = "Find Contains Component"))
 	bool ContainsComponent(const USenseStimulusBase* Comp, ESensorArrayByType SenseState, uint8 InChannel = 1) const;
 

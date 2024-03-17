@@ -21,18 +21,18 @@ class USenseStimulusBase;
 USTRUCT(BlueprintType)
 struct SENSESYSTEM_API FSensedPoint
 {
-	GENERATED_USTRUCT_BODY()
+	GENERATED_BODY()
 public:
 	FSensedPoint() {}
 	FSensedPoint(const FVector& V, const float Score = 0.f) : SensedPoint(V), PointScore(Score) {}
 	~FSensedPoint() {}
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Transient, Category = "SensedStimulus")
-	FVector SensedPoint = FVector::ZeroVector; // 12  byte
+	FVector SensedPoint = FVector::ZeroVector;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Transient, Category = "SensedStimulus")
-	float PointScore = 0.f; //4
+	float PointScore = 0.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Transient, Category = "SensedStimulus")
-	ESenseTestResult PointTestResult = ESenseTestResult::None; //1
+	ESenseTestResult PointTestResult = ESenseTestResult::None;
 
 	friend FArchive& operator<<(FArchive& Ar, FSensedPoint& Sp)
 	{
@@ -52,7 +52,7 @@ public:
 
 /** SensedStimulus struct */
 USTRUCT(BlueprintType)
-struct SENSESYSTEM_API FSensedStimulus //56 bytes const int s = sizeof(FSensedStimulus);
+struct SENSESYSTEM_API FSensedStimulus
 {
 	GENERATED_USTRUCT_BODY()
 public:

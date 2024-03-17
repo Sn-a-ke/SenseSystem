@@ -28,23 +28,20 @@ public:
 
 	/**Skip test if input score < MinScore*/
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SensorSight")
-	float MinScore = 0.f;
+	double MinScore = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SensorSight", meta = (ClampMin = "0.0", UIMin = "0.0"))
-	float MinDistance = 0.f;
+	double MinDistance = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SensorSight", meta = (ClampMin = "0.0", UIMin = "0.0"))
-	float MaxDistance = 5000;
-
+	double MaxDistance = 30000;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SensorSight", meta = (ClampMin = "0.0", UIMin = "0.0"))
-	float MaxDistanceLost = 6000;
-
+	double MaxDistanceLost = 200000;/*TNumericLimits<float>::Max()*/
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SensorSight", meta = (ClampMin = "0.0", ClampMax = "180.0", UIMin = "0.0", UIMax = "180.0"))
-	float MaxAngle = 45;
-
+	double MaxAngle = 60;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SensorSight", meta = (ClampMin = "0.0", ClampMax = "180.0", UIMin = "0.0", UIMax = "180.0"))
-	float MaxAngleLost = 60;
+	double MaxAngleLost = 360;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "SensorSight")
 	ETraceTestParam TraceTestParam = ETraceTestParam::BoolTraceTest;

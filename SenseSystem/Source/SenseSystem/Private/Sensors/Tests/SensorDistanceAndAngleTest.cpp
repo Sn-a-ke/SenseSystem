@@ -78,7 +78,7 @@ bool USensorDistanceAndAngleTest::PreTest()
 	const FVector Loc = Transform.GetLocation();
 	AABB_Box = FBox(Loc, Loc);
 	TmpSelfForward = Forward;
-	for (int32 i = 0; i < 4; ++i)
+	for (int32 i = 0; i < 4; i++)
 	{
 		AABB_Box += Loc + QRotation.RotateVector(AABB_Helper[i]);
 	}
@@ -92,7 +92,7 @@ bool USensorDistanceAndAngleTest::PreTest()
 			FVector::ForwardVector, //
 			FVector::BackwardVector //
 		};
-	for (int32 i = 0; i < 6; ++i)
+	for (int32 i = 0; i < 6; i++)
 	{
 		const float CosAngle = FVector::DotProduct(TmpSelfForward, AABB_Helper_2[i]);
 		if (CosAngle >= MaxAngleLostCos)

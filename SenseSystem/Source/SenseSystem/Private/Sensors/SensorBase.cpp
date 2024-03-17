@@ -570,7 +570,7 @@ void USensorBase::InitializeForSense(USenseReceiverComponent* FromReceiver)
 		if (GetSenseManager() != nullptr)
 		{
 			ChannelPool.Reset(ChannelSetup.Num());
-			for (int32 i = 0; i < ChannelSetup.Num(); ++i)
+			for (int32 i = 0; i < ChannelSetup.Num(); i++)
 			{
 				ChannelPool.Add(MakeUnique<FSenseDetectPool>());
 				ChannelSetup[i].Init(ChannelPool[i].Get());
@@ -895,7 +895,7 @@ TArray<FStimulusFindResult> USensorBase::UnRegisterSenseStimulus(USenseStimulusB
 				}
 
 				TArray<FStimulusFindResult> FindResult = FindStimulusInAllState(Ssc, *StrPtr, BitChannels);
-				for (int32 i = 0; i < FindResult.Num(); ++i)
+				for (int32 i = 0; i < FindResult.Num(); i++)
 				{
 					FStimulusFindResult& It = FindResult[i];
 					const int32 ChanIdx = It.Sensor->GetChannelID(It.Channel);
@@ -917,7 +917,7 @@ TArray<FStimulusFindResult> USensorBase::UnRegisterSenseStimulus(USenseStimulusB
 							{
 								if (BestIt > It.SensedID)
 								{
-									--BestIt;
+									BestIt--;
 								}
 							}
 						}
@@ -1240,7 +1240,7 @@ ESenseTestResult USensorBase::Sensor_Run_Test(const float MinScore, const float 
 	ESenseTestResult TotalResult = ESenseTestResult::None;
 	Stimulus.BitChannels &= (BitChannels.Value & ~IgnoreBitChannels.Value);
 
-	for (int32 i = 0; i < SensorTests.Num(); ++i) //run sensors test for SensedStimulus struct
+	for (int32 i = 0; i < SensorTests.Num(); i++) //run sensors test for SensedStimulus struct
 	{
 		if (LIKELY(IsInitialized())) // && Stimulus.TmpHash != MAX_uint32
 		{
@@ -1269,7 +1269,7 @@ ESenseTestResult USensorBase::Sensor_Run_Test(const float MinScore, const float 
 				}
 				if (TotalResult == ESenseTestResult::NotLost && !bOnceContainsGate)
 				{
-					for (int32 j = 0; j < ChannelSetup.Num(); ++j)
+					for (int32 j = 0; j < ChannelSetup.Num(); j++)
 					{
 						const FChannelSetup& ChanIt = ChannelSetup[j];
 						const uint64 Chan = ChanIt.GetSenseBitChannel();
@@ -1617,6 +1617,11 @@ void USensorBase::OnSensorReady()
 				SensorThreadType = ESensorThreadType::Main_Thread;
 			}
 	
+			bool bHighPriority = false;
+			//if (const APawn* Pawn = Cast<APawn>GetSensorOwner())
+			//{
+			//	bHighPriority = Cast<APlayerController>(Pawn->GetController())
+			//}
 			switch (SensorThreadType)
 			{
 				case ESensorThreadType::Main_Thread:
@@ -1626,7 +1631,7 @@ void USensorBase::OnSensorReady()
 				}
 				case ESensorThreadType::Sense_Thread:
 				{
-					const bool bSuccess = GetSenseManager()->RequestAsyncSenseUpdate(this, false);
+					const bool bSuccess = GetSenseManager()->RequestAsyncSenseUpdate(this, bHighPriority);
 					if (!bSuccess) UpdateState = ESensorState::NotUpdate;
 					break;
 				}
@@ -1751,7 +1756,7 @@ TArray<FStimulusFindResult> USensorBase::FindStimulusInAllState(
 						ESensorArrayByType::SenseLost	  //
 					};
 
-				for (int32 i = 0; i < 3; ++i)
+				for (int32 i = 0; i < 3; i++)
 				{
 					const TArray<FSensedStimulus>& SSArray = *ChIt.GetSensedStimulusBySenseEvent(ByTypeArray[i]);
 					const int32 ID = FindInSortedArray(SSArray, StimulusComponent);
@@ -1838,7 +1843,7 @@ FStimulusFindResult USensorBase::FindStimulusInAllState_SingleChannel(const USen
 						ESensorArrayByType::SenseLost	  //
 					};
 
-				for (int32 i = 0; i < 3; ++i)
+				for (int32 i = 0; i < 3; i++)
 				{
 					const TArray<FSensedStimulus>& SSArray = *ChIt.GetSensedStimulusBySenseEvent(ByTypeArray[i]);
 					const int32 ID = HashSorted::BinarySearch_HashType(SSArray, Hash);
@@ -2219,7 +2224,7 @@ void USensorBase::OnSensorUpdateReceiver(const EOnSenseEvent SenseEvent, const F
 
 				if (IsCallOnSense(SenseEvent))
 				{
-					for (int32 i = InSensedStimulus.Num() - 1; i >= 0; --i)
+					for (int32 i = InSensedStimulus.Num() - 1; i >= 0; i--)
 					{
 						if (InSensedStimulus[i].StimulusComponent.IsValid())
 						{
@@ -2619,7 +2624,7 @@ void USensorBase::DrawDebug(bool bTest, bool bCurrentSensed, bool bLostSensed, b
 	if (!bEnable || !World) return;
 
 	APlayerController* PlayerController = nullptr;
-	for (FConstPlayerControllerIterator Iterator = World->GetPlayerControllerIterator(); Iterator; ++Iterator)
+	for (FConstPlayerControllerIterator Iterator = World->GetPlayerControllerIterator(); Iterator; Iterator++)
 	{
 		PlayerController = Iterator->Get();
 		if (PlayerController)
@@ -2920,7 +2925,7 @@ bool USensorBase::CheckSensorTestToDefaults(TArray<FSenseSysRestoreObject>& Rest
 					if (!DefaultSensor) break;
 
 					TArray<USensorTestBase*>& TestCDO_Arr = DefaultSensor->SensorTests;
-					for (int32 j = 0; j < TestCDO_Arr.Num(); ++j)
+					for (int32 j = 0; j < TestCDO_Arr.Num(); j++)
 					{
 						if (IsValid(TestCDO_Arr[j]))
 						{

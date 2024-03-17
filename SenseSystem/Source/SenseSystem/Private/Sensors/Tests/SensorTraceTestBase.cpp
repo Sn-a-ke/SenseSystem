@@ -119,13 +119,13 @@ bool USensorTraceTestBase::ScoreFromTransparency(const TArray<struct FHitResult>
 //	TArray<TEnumAsByte<ECollisionChannel>> CollisionObjectTraces;
 //	CollisionObjectTraces.AddUninitialized(ObjectTypes.Num());
 //
-//	for (auto Iterate = ObjectTypes.CreateConstIterator(); Iterate; ++Iterate)
+//	for (auto Iterate = ObjectTypes.CreateConstIterator(); Iterate; Iterate++)
 //	{
 //		CollisionObjectTraces[Iterate.GetIndex()] = UEngineTypes::ConvertToCollisionChannel(*Iterate);
 //	}
 //
 //	FCollisionObjectQueryParams ObjectParams;
-//	for (auto Iterate = CollisionObjectTraces.CreateConstIterator(); Iterate; ++Iterate)
+//	for (auto Iterate = CollisionObjectTraces.CreateConstIterator(); Iterate; Iterate++)
 //	{
 //		const ECollisionChannel& Channel = (*Iterate);
 //		if (FCollisionObjectQueryParams::IsValidObjectQuery(Channel))

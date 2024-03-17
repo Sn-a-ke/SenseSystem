@@ -1,40 +1,45 @@
 {
-	"FileVersion": 3,
-	"Version": 34,
-	"VersionName": "SenseSystem 1.29",
-	"FriendlyName": "SenseSystem",
-	"Description": "SenseSystem",
-	"Category": "Other",
-	"CreatedBy": "Alexandr Marchenko",
-	"CreatedByURL": "https://www.unrealengine.com/marketplace/en-US/profile/Alexander+UE4",
-	"DocsURL": "https://drive.google.com/drive/folders/1atJzhBuEcQyUeMrZbVL-5p9DVAVhif4Z",
-	"MarketplaceURL": "com.epicgames.launcher: //ue/marketplace/content/28a0c4ba00bf4eee8c17e52b7b2c8d52",
-	"SupportURL": "https://www.unrealengine.com/marketplace/en-US/profile/Alexander+UE4",
-	"EngineVersion": "5.2.0",
-	"CanContainContent": true,
-	"Installed": true,
-	"Modules": [
-		{
-			"Name": "SenseSystem",
-			"Type": "Runtime",
-			"LoadingPhase": "PreDefault",
-			"PlatformAllowList": [
-				"Win64",
-				"Mac",
-				"Linux",
-				"Android",
-				"LinuxArm64"
-			]
-		},
-		{
-			"Name": "SenseSystemEditor",
-			"Type": "Editor",
-			"LoadingPhase": "PostEngineInit",
-			"PlatformAllowList": [
-				"Win64",
-				"Mac",
-				"Linux"
-			]
-		}
-	]
+  "FileVersion": 3,
+  "Version": 36,
+  "VersionName": "SenseSystem 1.31",
+  "EngineVersion": "5.3.0",
+  "FriendlyName": "SenseSystem",
+  "Description": "SenseSystem",
+  "Category": "Other",
+  "CreatedBy": "Alexandr Marchenko",
+  "CreatedByURL": "https://www.unrealengine.com/marketplace/en-US/profile/Alexander+UE4",
+  "DocsURL": "https://drive.google.com/drive/folders/1atJzhBuEcQyUeMrZbVL-5p9DVAVhif4Z",
+  "MarketplaceURL": "com.epicgames.launcher: //ue/marketplace/content/28a0c4ba00bf4eee8c17e52b7b2c8d52",
+  "SupportURL": "https://www.unrealengine.com/marketplace/en-US/profile/Alexander+UE4",
+  "EnabledByDefault": true,
+  "CanContainContent": true,
+  "IsBetaVersion": false,
+  "Installed": false,
+  "Modules": 
+  [
+    {
+      "Name": "SenseSystem",
+      "Type": "Runtime",
+      "LoadingPhase": "PreDefault",
+      "PlatformAllowList": 
+      [
+        "Win64",
+        "Mac",
+        "Linux",
+        "Android",
+        "LinuxArm64"
+      ]
+    },
+    {
+      "Name": "SenseSystemEditor",
+      "Type": "Editor",
+      "LoadingPhase": "PostEngineInit",
+      "PlatformAllowList": 
+      [
+        "Win64",
+        "Mac",
+        "Linux"
+      ]
+    }
+  ]
 }

@@ -75,7 +75,7 @@ struct FInvalidRemoveIdx
 /********/
 
 
-FSenseDetectPool::ElementIndexType FSenseDetectPool::ContainsIn(const FSensedStimulus& InElem, const TArray<ElementIndexType>& InArr) const
+ElementIndexType FSenseDetectPool::ContainsIn(const FSensedStimulus& InElem, const TArray<ElementIndexType>& InArr) const
 {
 	if (InArr.Num() && InElem.TmpHash != MAX_uint32)
 	{

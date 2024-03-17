@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "Sensors/PassiveSensor.h"
 #include "Components/PrimitiveComponent.h"
-#include "TimerManager.h"
 
 #include "SensorTouch.generated.h"
 

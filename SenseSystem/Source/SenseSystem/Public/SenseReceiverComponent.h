@@ -36,13 +36,12 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnMainTargetStatusChanged, AActo
 * SenseReceiverComponent
 */
 UCLASS(BlueprintType, Blueprintable, ClassGroup = (SenseSystem), meta = (BlueprintSpawnableComponent), hidecategories = ("Rendering"))
-class SENSESYSTEM_API USenseReceiverComponent : public USceneComponent
+class SENSESYSTEM_API USenseReceiverComponent final : public USceneComponent
 {
 	GENERATED_BODY()
 public:
 	USenseReceiverComponent(const FObjectInitializer& ObjectInitializer);
 	virtual ~USenseReceiverComponent() override;
-	using ElementIndexType = FSenseSystemModule::ElementIndexType;
 
 private:
 	// NotUproperty
@@ -102,6 +101,9 @@ public:
 	/**take information about the orientation in space of the component from the controller*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SenseReceiver")
 	bool bSensorRotationFromController = false;
+
+	UPROPERTY(EditDefaultsOnly)
+	bool bAllowRuntimeSensorCreation = false;
 
 	/************************************/
 

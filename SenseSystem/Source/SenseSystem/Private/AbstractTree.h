@@ -43,7 +43,7 @@ namespace TreeHelper
 			if constexpr (IsEqual(1))
 			{
 				return 2;
-			}
+	}
 			if constexpr (IsEqual(2))
 			{
 				return 4;
@@ -319,7 +319,6 @@ public:
 };
 
 
-
 /**	Tree Node */
 template<
 	typename TreeElementIdxType, // Element Idx in Element pool
@@ -334,6 +333,9 @@ public:
 
 	static constexpr IndexQtType MaxIndexQt = TNumericLimits<IndexQtType>::Max();
 	static constexpr int32 SubNodesNum = VSpace::SubTravelNum();
+
+	static_assert(SubNodesNum > 0, "Error TTreeNode SubNodesNum == 0 !");
+	static_assert(VectorSpace > 1U && VectorSpace < 4U, "TTreeNode: DimensionSize error");
 
 	using Real = typename PointType::FReal;
 	using ElementNodeType = TreeElementIdxType;
@@ -388,7 +390,7 @@ public:
 
 	IndexQtType GetByQuadName(const uint8 QuadName) const
 	{
-		for (int32 i = 0; i < SubNodesNum; ++i)
+		for (int32 i = 0; i < SubNodesNum; i++)
 		{
 			if (QuadName == static_cast<uint8>(1U) << i)
 			{
@@ -399,7 +401,7 @@ public:
 	}
 	IndexQtType& GetByQuadNameRef(const uint8 QuadName)
 	{
-		for (int32 i = 0; i < SubNodesNum; ++i)
+		for (int32 i = 0; i < SubNodesNum; i++)
 		{
 			if (QuadName == static_cast<uint8>(1U) << i)
 			{
@@ -452,7 +454,7 @@ public:
 		for (int32 i = 0; i < SubNodesNum; ++i)
 		{
 			PointType v = PointType();
-			for (int32 j = 0; j < VSpace::GetInt32; ++j)
+			for (int32 j = 0; j < VSpace::GetInt32; j++)
 			{
 				v[j] = ((i >> j) & 1) //
 					? Box.Min()[j]
@@ -1050,7 +1052,7 @@ private:
 				const IndexQtType TreeId = SelfNode.GetByQuadName(Q);
 				check(!bElementVector || (bElementVector && TreeId != MaxIndexQt)) if (bElementVector || TreeId != MaxIndexQt)
 				{
-					++SelfNode.ContainsCount;
+					SelfNode.ContainsCount++;
 					Self_ID = TreeId; // next loop
 					continue;
 				}
@@ -1062,7 +1064,7 @@ private:
 			}
 
 			SelfNode.Nodes.Add(MoveTemp(ObjID));
-			++SelfNode.ContainsCount;
+			SelfNode.ContainsCount++;
 			//#if WITH_EDITOR
 			//		checkSlow(CheckNum(Self_ID));
 			//#endif
@@ -1083,7 +1085,7 @@ private:
 		while (true)
 		{
 			TreeNodeType& SelfNode = Pool[Self_ID];
-			--SelfNode.ContainsCount;
+			SelfNode.ContainsCount--;
 
 			if (SelfNode.Num() == 0)
 			{
@@ -1120,9 +1122,9 @@ private:
 			const Real* RESTRICT Mi = reinterpret_cast<const Real*>(&SelfBox.min);
 			const Real* RESTRICT Ma = reinterpret_cast<const Real*>(&SelfBox.max);
 
-			for (int32 i = 0; i < VSpace::GetInt32; ++i)
+			for (int32 i = 0; i < VSpace::GetInt32; i++)
 			{
-				MiB[i] = FMath::Max(Mi[i], MiB[i]); //todo: ??? owerride  Box.Min Box.Max
+				MiB[i] = FMath::Max(Mi[i], MiB[i]);
 				MaB[i] = FMath::Min(Ma[i], MaB[i]);
 			}
 
@@ -1189,7 +1191,7 @@ private:
 		while (Self_ID != MaxIndexQt)
 		{
 			TreeNodeType& LoopRef = Pool[Self_ID];
-			--LoopRef.ContainsCount;
+			LoopRef.ContainsCount--;
 
 			if (LoopRef.IsInside(New))
 			{
@@ -1229,7 +1231,7 @@ private:
 
 		TreeNodeType& TreeRef = Pool[Self_ID];
 		check(!TreeRef.IsLeaf());
-		for (int32 i = TreeRef.Nodes.Num() - 1; i > INDEX_NONE; --i) // node to leaves
+		for (int32 i = TreeRef.Nodes.Num() - 1; i > INDEX_NONE; i--) // node to leaves
 		{
 			const auto ObjID = TreeRef.Nodes[i];
 			const auto& Loc = GetElementBox(ObjID);
@@ -1272,7 +1274,7 @@ private:
 				const Real* RESTRICT QtBc = reinterpret_cast<const Real*>(&QuadTreeBoxCenter);
 				const Real* RESTRICT InBc = reinterpret_cast<const Real*>(&InBoxCenter);
 
-				for (int32 i = 0; i < VSpace::GetInt32; ++i)
+				for (int32 i = 0; i < VSpace::GetInt32; i++)
 				{
 					Bc[i] = (InBc[i] <= QtBc[i]) ? Box.Min()[i] : Box.Max()[i];
 				}
@@ -1299,14 +1301,14 @@ private:
 		const auto Center = Box.GetCenter();
 		const auto HalfExtent = Box.GetExtent() * 0.5f;
 
-		for (int32 i = 0; i < SubNodesNum; ++i)
+		for (int32 i = 0; i < SubNodesNum; i++)
 		{
 			IndexQtType& Param = SelfNode.SubNodes[i];
 			if (Param == MaxIndexQt)
 			{
 				PointType HelP = HalfExtent;
 				Real* const RESTRICT h = reinterpret_cast<Real*>(&HelP);
-				for (int32 j = 0; j < VSpace::GetInt32; ++j)
+				for (int32 j = 0; j < VSpace::GetInt32; j++)
 				{
 					if (1 & (i >> j))
 					{
@@ -1413,7 +1415,7 @@ private:
 		TreeNodeType& SelfNode = Pool[Self_ID];
 		if (!SelfNode.IsLeaf())
 		{
-			for (int32 i = 0; i < SubNodesNum; ++i)
+			for (int32 i = 0; i < SubNodesNum; i++)
 			{
 				const IndexQtType LeafId = SelfNode.SubNodes[i];
 				if (LeafId != MaxIndexQt)

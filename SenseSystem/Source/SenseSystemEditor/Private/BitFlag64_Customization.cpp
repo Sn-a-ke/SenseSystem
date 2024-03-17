@@ -34,7 +34,7 @@ void SBitMask64Widget::Construct(const FArguments& InArgs)
 	auto CreateBitmaskFlagsArray = []() -> TStaticArray<FBitmaskFlagInfo, 64>
 		{
 			TStaticArray<FBitmaskFlagInfo, 64> Result;
-			for (int32 Idx = 0; Idx < 64; ++Idx)
+			for (int32 Idx = 0; Idx < 64; Idx++)
 			{
 				Result[Idx].Value = 1llu << Idx;
 				Result[Idx].DisplayName = FText::AsNumber(Idx + 1);
@@ -51,7 +51,7 @@ void SBitMask64Widget::Construct(const FArguments& InArgs)
 				const TStaticArray<FBitmaskFlagInfo, 64> BitmaskFlags = CreateBitmaskFlagsArray();
 				FString Out;
 
-				for (int32 Idx = 0; Idx < 64; ++Idx)
+				for (int32 Idx = 0; Idx < 64; Idx++)
 				{
 					if (BitmaskValue & BitmaskFlags[Idx].Value)
 					{
@@ -75,7 +75,7 @@ void SBitMask64Widget::Construct(const FArguments& InArgs)
 			{
 				FMenuBuilder MenuBuilder(false, nullptr);
 				TStaticArray<FBitmaskFlagInfo, 64> BitmaskFlags = CreateBitmaskFlagsArray();
-				for (int32 i = 0; i < BitmaskFlags.Num(); ++i)
+				for (int32 i = 0; i < BitmaskFlags.Num(); i++)
 				{
 					MenuBuilder.AddMenuEntry(
 						BitmaskFlags[i].DisplayName,
@@ -142,7 +142,7 @@ void FBitFlag64_Customization::OnValueCommitted(const uint64 Val, ETextCommit::T
 		PropertyHandle->AccessRawData(RawData);
 		for (void* RawDataInstance : RawData)
 		{
-			FBitFlag64_SenseSys& Ref = *static_cast<FBitFlag64_SenseSys*>(RawDataInstance) = GT;
+			FBitFlag64_SenseSys& Ref = *(FBitFlag64_SenseSys*)(RawDataInstance) = GT;
 			Ref = GT;
 		}
 	}
@@ -161,7 +161,7 @@ FBitFlag64_SenseSys FBitFlag64_Customization::FromProperty() const
 	{
 		return FBitFlag64_SenseSys();
 	}
-	FBitFlag64_SenseSys* DataPtr = static_cast<FBitFlag64_SenseSys*>(RawData[0]);
+	FBitFlag64_SenseSys* DataPtr = (FBitFlag64_SenseSys*)(RawData[0]);
 	if (DataPtr == nullptr)
 	{
 		return FBitFlag64_SenseSys();

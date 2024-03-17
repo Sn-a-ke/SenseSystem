@@ -10,7 +10,7 @@ public:
 	/** IModuleInterface implementation */
 	virtual void StartupModule() override;
 	virtual void ShutdownModule() override;
-
+	
 	using ElementIndexType = uint16; //todo options
 };
 

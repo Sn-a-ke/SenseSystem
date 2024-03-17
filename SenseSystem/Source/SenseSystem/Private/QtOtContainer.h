@@ -23,7 +23,7 @@ struct FIndexRemoveControl
 	bool bRemove = false;
 };
 
-struct FTreeDrawSetup
+struct FTreeDrawSetup final
 {
 	FTreeDrawSetup() {}
 	FTreeDrawSetup(const FLinearColor C, const float T, const ESceneDepthPriorityGroup D) : Color(C.ToFColor(true)), Thickness(T), DrawDepth(D) {}
@@ -34,7 +34,7 @@ struct FTreeDrawSetup
 };
 
 /** abstract QuadTree - OcTree */
-class SENSESYSTEM_API IContainerTree
+class SENSESYSTEM_API IContainerTree 
 {
 public:
 	IContainerTree() = default;

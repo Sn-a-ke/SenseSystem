@@ -19,7 +19,7 @@ class SENSESYSTEM_API USenseObstacleInterface : public UInterface
 /**
  * SenseObstacleInterface
  */
-class SENSESYSTEM_API ISenseObstacleInterface
+class SENSESYSTEM_API ISenseObstacleInterface 
 {
 	GENERATED_BODY()
 public:
